@@ -1,0 +1,71 @@
+# ── Core Framework ──────────────────────────────────────────────────────────
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.12
+
+# ── Settings & Validation ───────────────────────────────────────────────────
+pydantic==2.10.3
+pydantic-settings==2.6.1
+email-validator==2.2.0
+
+# ── PostgreSQL (Async) ───────────────────────────────────────────────────────
+sqlmodel==0.0.22
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+alembic==1.14.0
+
+# ── Neo4j (Async) ────────────────────────────────────────────────────────────
+neo4j==5.27.0
+
+# ── Qdrant (Async) ───────────────────────────────────────────────────────────
+qdrant-client==1.12.1
+
+# ── Embeddings (BGE-M3 / Sentence Transformers) ──────────────────────────────
+sentence-transformers==3.3.1
+torch==2.5.1
+numpy==1.26.4
+
+# ── Machine Learning ─────────────────────────────────────────────────────────
+scikit-learn==1.5.2
+xgboost==2.1.3
+hdbscan==0.8.40
+geopandas==1.0.1
+h3==4.1.0
+shapely==2.0.6
+
+# ── Computer Vision & Evidence Analysis ──────────────────────────────────────
+opencv-python-headless==4.10.0.84
+easyocr==1.7.2
+openai-whisper==20240930
+
+# ── LangChain / LangGraph ────────────────────────────────────────────────────
+langchain==0.3.13
+langchain-core==0.3.28
+langchain-openai==0.2.14
+langchain-community==0.3.13
+langchain-nvidia-ai-endpoints==0.3.5
+langgraph==0.2.60
+
+# ── Authentication / Security ────────────────────────────────────────────────
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+pyotp==2.9.0
+
+# ── Blockchain (Audit Hashing) ────────────────────────────────────────────────
+cryptography==44.0.0
+
+# ── HTTP Client ──────────────────────────────────────────────────────────────
+httpx==0.27.2
+aiohttp==3.11.10
+
+# ── Observability ────────────────────────────────────────────────────────────
+opentelemetry-api==1.29.0
+opentelemetry-sdk==1.29.0
+opentelemetry-instrumentation-fastapi==0.50b0
+
+# ── Utilities ────────────────────────────────────────────────────────────────
+python-dotenv==1.0.1
+structlog==24.4.0
+tenacity==9.0.0
+python-dateutil==2.9.0
+orjson==3.10.12

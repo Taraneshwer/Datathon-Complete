@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Crime Intelligence & Analytical Platform"
+version = "1.0.0"
+id = "artifacts/crime-intel"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 26154
+
+[services.development]
+run = "npm --workspace artifacts/crime-intel run dev"
+
+[services.production]
+build = [ "npm", "--workspace", "artifacts/crime-intel", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/crime-intel/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26154"
+BASE_PATH = "/"

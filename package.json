@@ -1,0 +1,29 @@
+{
+  "name": "workspace",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "preinstall": "node ./scripts/check-npm.cjs",
+    "build": "npm run typecheck && npm run build --workspaces --if-present",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "npm run typecheck:libs && npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "npm": ">=8.0.0",
+    "node": ">=18.0.0"
+  },
+  "private": true,
+  "workspaces": [
+    "artifacts/*",
+    "lib/*",
+    "lib/integrations/*",
+    "scripts"
+  ],
+  "devDependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.62.2",
+    "@tailwindcss/oxide-win32-x64-msvc": "^4.3.2",
+    "lightningcss-win32-x64-msvc": "^1.32.0",
+    "prettier": "^3.8.4",
+    "typescript": "~5.9.3"
+  }
+}

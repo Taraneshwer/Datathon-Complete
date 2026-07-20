@@ -1,0 +1,6 @@
+cd artifacts/crime-intel
+npm run dev
+
+
+cd artifacts/api-server
+npm run dev

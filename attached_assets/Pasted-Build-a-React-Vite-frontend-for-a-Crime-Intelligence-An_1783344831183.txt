@@ -1,0 +1,243 @@
+Build a React \+ Vite frontend for a Crime Intelligence & Analytical Platform (Karnataka   
+State Police / SCRB). The bar: this should look like it was designed by a senior product   
+designer at a top-tier tech company (Netflix/Google/Stripe-caliber) — obsessive attention   
+to spacing, motion, and typographic rhythm, not a dashboard assembled from a component   
+library. Every pixel should feel intentional. If any part of this looks like a Tailwind   
+UI template, it has failed.
+
+This platform has 11 capabilities. Build them as a cohesive product with shared navigation,   
+not 11 disconnected demos — a suspect selected in one module should be findable in every   
+other module that references them. Coherence across modules is the single biggest signal   
+of product maturity, more than any individual screen's polish.
+
+\#\# DESIGN PHILOSOPHY
+
+Restraint is the craft. A senior designer's signature is knowing what to leave out.   
+One deliberate signature moment (defined below), and everything else quiet, precise,   
+and disciplined. No gradients-for-decoration, no drop shadows deeper than 4px blur,   
+no rounded-corner-everything softness — this is investigative software, it should feel   
+serious and exact, like a Bloomberg terminal crossed with Linear's visual discipline.
+
+\#\# THEME LOCK (non-negotiable)
+
+This is a LIGHT THEME application. Do not implement dark mode, do not default any   
+component to a dark background, and do not use dark map tiles even though many   
+map libraries default to them. Specifically:  
+\- Leaflet: use a light/positron-style tile layer (e.g. CartoDB Positron), NOT the   
+  default OpenStreetMap dark-adjacent style or any dark basemap  
+\- react-force-graph: explicitly set backgroundColor to \--bg-canvas (\#FAFAF9),   
+  this library defaults to black and it WILL render dark unless overridden  
+\- Recharts: ensure grid lines, axis text, and tooltips all use the light-theme   
+  ink/border tokens below — Recharts' default theme can look muddy on white if   
+  grid line colors aren't explicitly set  
+\- Any third-party component (date pickers, dropdowns, modals) must be manually   
+  restyled to match the light token system — do not accept a library's default   
+  dark or high-contrast styling  
+If unsure whether a component defaults to dark, check its rendered output against   
+\--bg-canvas before considering it done.
+
+\#\# VISUAL SYSTEM
+
+Color (use as CSS variables / Tailwind theme extension, never inline hex):  
+\- \--bg-canvas: \#FAFAF9  
+\- \--bg-surface: \#FFFFFF  
+\- \--border-hairline: \#EBEAE6  
+\- \--ink-primary: \#16181A  
+\- \--ink-secondary: \#71767D  
+\- \--ink-tertiary: \#A8ACB1  
+\- \--accent-critical: \#C1352B (active threat/anomaly/high-risk states only)  
+\- \--accent-focus: \#1F3A5C (navy — selected states, active nav, links, primary CTAs)  
+\- \--accent-resolved: \#2F6E52  
+\- \--accent-warning: \#B8863F (muted amber — used only for "flagged for review" /   
+  bias-detector callouts / blind-spot warnings, distinct from \--accent-critical)  
+\- \--data-scale: 5-step sequential from \#EEF2F5 → \#1F3A5C  
+\- \--trust-chain: \#4A4E54 (a distinct neutral slate used only in the blockchain/ledger   
+  and identity modules, so they read as structurally different from analytics screens —   
+  the security layer should feel like infrastructure, not another chart)
+
+Typography:  
+\- Display: "Söhne" or "General Sans" (fallback "Inter" 600, tracking \-0.02em) — module   
+  titles and hero stats only  
+\- Body/UI: "Inter" — scale: 13/16 (captions) → 14/20 (body) → 16/24 (emphasized) →   
+  20/28 (card titles) → 32/38 (section headers)  
+\- Numeric/data: "IBM Plex Mono", tabular-nums always on — every case ID, hash,   
+  coordinate, timestamp, register number, confidence score  
+\- 8px baseline grid, all spacing in multiples of 4
+
+Spacing/density: generous space AROUND modules (32-48px), tight confident density   
+WITHIN them. Cards: 1px hairline border, no shadow at rest, 8px/4%-opacity shadow   
+on hover only.
+
+Motion:  
+\- Page load: single 200ms ease-out fade+8px rise, staggered 40ms per element, once  
+\- Hover: 120ms ease, opacity/border-color only, no scale transforms  
+\- THE signature moment: hotspot markers crossing anomaly threshold get a slow 3s   
+  radius pulse in \--accent-critical at low opacity — the ONLY sustained animation   
+  in the entire product. Respect prefers-reduced-motion (static ring instead).  
+\- Panel/route transitions: 180ms ease, no bounce
+
+\#\# LAYOUT
+
+\- Left rail, 240px, collapsible to 64px — smooth CSS grid-template-columns transition   
+  on collapse, not hide/show. Groups nav items into three labeled sections (small   
+  uppercase mono eyebrow labels, \--ink-tertiary):  
+    
+  INTELLIGENCE  
+    \- Analytics Dashboard (module 9\)  
+    \- Hotspot Map (module 2\)  
+    \- Pattern Matching (module 1\)  
+    \- Early Warning (module 8\)  
+    
+  INVESTIGATION  
+    \- Knowledge Graph \+ Case Replay (module 3\)  
+    \- Case Evidence & Timeline (module 10\)  
+    \- Investigative Agent (module 4\)  
+    \- Blind-Spot Discovery (module 6\)  
+    
+  TRUST & OVERSIGHT  
+    \- Identity & Access (modules 5, 7\)  
+    \- Bias Audit (module 11\)
+
+\- Top bar: 56px — product mark left; right side in order: backend connection status   
+  pill, security/ledger status pill (see below), live timestamp (mono), alert count.   
+  1px hairline bottom border only.  
+\- Main canvas: 12-col CSS grid, deliberate spans per module, not masonry  
+\- Module card: 20px padding, header row \= title (display type) \+ metadata (mono,   
+  muted) \+ hover-revealed icon actions, right-aligned
+
+\#\# BACKEND STATUS INDICATOR
+
+Small status pill, top bar, always visible:  
+\- 6px dot \+ mono label, 12px, \--ink-secondary default  
+\- Connected: \--accent-resolved dot, "Connected", static  
+\- Connecting: \--ink-tertiary dot, 1.5s opacity pulse (0.4–1.0), "Connecting..."  
+\- Disconnected: \--accent-critical dot, static (no pulse — reserved for map anomaly),   
+  "Disconnected"  
+\- Hover/click: popover with API base URL, last ping timestamp (mono), Retry link  
+\- Poll GET /api/health every 10s; mock via toggleable dev flag in /mockData so all   
+  three states are demoable on command  
+\- Never blocks or takes over the UI — peripheral awareness only
+
+\#\# SECURITY / LEDGER STATUS INDICATOR (new — pairs with modules 5 & 7\)
+
+A second small pill beside the backend indicator, using \--trust-chain color, showing   
+the platform's cryptographic integrity state at a glance:  
+\- Icon: a small lock/link glyph (lucide \`shield-check\` or \`link\`) \+ mono label,   
+  e.g. "Ledger synced · block \#48213"  
+\- States: Synced (--accent-resolved icon), Verifying (--ink-tertiary, subtle   
+  opacity pulse), Integrity Alert (--accent-critical icon, static — e.g. a   
+  hash mismatch detected)  
+\- Hover: popover showing last anchored block hash (mono, truncated with ellipsis   
+  \+ copy-to-clipboard), timestamp, and a "View Ledger" link to module 5's detail view  
+\- This is peripheral trust signaling, not a functional blockchain — mock the   
+  block height incrementing every \~30s and one truncated hash string in /mockData
+
+\#\# MODULES — BUILD IN THIS PRIORITY ORDER
+
+Build Tier 1 with full interactivity and real mock data. Build Tier 2 functional   
+but simpler. Build Tier 3 as polished static/architecture views — clearly still   
+part of the product, not stubs, but you're not simulating full backend logic for them.
+
+\#\#\# TIER 1 — full depth
+
+1\. \*\*Shell\*\* — left rail (3 grouped sections above), top bar with both status   
+   indicators, working collapse transition. Build and get this feeling right first.
+
+2\. \*\*Hotspot Map (module 2)\*\* — react-leaflet \+ leaflet.heat. Choropleth/heatmap   
+   toggle, time-of-day scrubber (custom-styled range input), district drill-down   
+   to station-level markers, legend using \--data-scale.
+
+3\. \*\*Knowledge Graph \+ Crime Replay Agent (module 3)\*\* — react-force-graph.   
+   Suspects (navy), victims (slate gray), locations (square nodes, muted gold   
+   \#A67C3D). Edge labels on hover only. Selecting a node opens a slide-in panel   
+   (not modal) with MO summary and linked case IDs.  
+   "Replay Agent" addition: a horizontal scrubber/timeline control below the graph   
+   — dragging it replays how the network formed over time (nodes and edges fade   
+   in/out chronologically), styled like a video scrubber but in mono/hairline   
+   aesthetic, not a media-player skin.
+
+4\. \*\*Analytics Dashboard \+ Active Cases (module 9)\*\* — recharts trend line with   
+   muted historical-average reference line, \--accent-critical anomaly stat cards   
+   (3px left border only), plus a dense Active Cases table below: mono case IDs   
+   with tabular-nums, outlined status pills (Open/Under Review/Closed).
+
+5\. \*\*Pattern Matching — Behavioral Patterns (module 1)\*\* — a dedicated panel   
+   showing MO clusters as a compact card grid: each card \= a behavioral pattern   
+   signature (icon \+ short label, e.g. "Late-night forced entry, coastal district")   
+   with a match-confidence score in mono/tabular-nums, and a small sparkline of   
+   frequency over time. Clicking a pattern filters the Knowledge Graph to matching   
+   cases — reinforces cross-module coherence.
+
+\#\#\# TIER 2 — functional, simpler
+
+6\. \*\*National Early Warning System (module 8)\*\* — a right-side collapsible alert   
+   feed (chronological, \--accent-critical left border for unread/critical, mono   
+   timestamps) PLUS a compact risk-forecast strip at the top of the Dashboard:   
+   3-5 small district cards showing a predicted-risk trend arrow (up/flat/down)   
+   for the coming week, \--data-scale colored.
+
+7\. \*\*Crime Blind-Spot Discovery (module 6)\*\* — a map overlay toggle on the Hotspot   
+   Map (not a separate screen) — when enabled, shades districts where reported-crime   
+   is LOW but a derived risk indicator (population density × patrol coverage   
+   inverse) is HIGH, using \--accent-warning, with a small "why flagged" tooltip   
+   explaining the derived reasoning in plain language.
+
+8\. \*\*Evidence Analysis \+ Timeline Chart (module 10)\*\* — a per-case detail view   
+   (reached by clicking a case ID anywhere in the product): a vertical timeline   
+   (hairline rule \+ mono timestamps \+ event dots) of case events, with an evidence   
+   panel alongside (file/document chips, each with a type icon and confidence/  
+   verification badge).
+
+9\. \*\*Investigation Bias Detector (module 11)\*\* — a dedicated audit panel: a simple   
+   bar comparison (case-closure rate or resource-allocation by district/demographic   
+   bucket, using anonymized synthetic data) with a plain-language callout card   
+   (--accent-warning border) explaining any detected disparity — framed as "flagged   
+   for review," never as an accusation. This module's tone must stay clinical and   
+   evidentiary, not alarmist.
+
+\#\#\# TIER 3 — polished static/architecture views
+
+10\. \*\*Personalised Investigative Agent \+ Prompt Injection Firewall (module 4)\*\* —   
+    a chat-style side panel (accessible from any case view) styled consistently   
+    with the rest of the product (not a generic chat bubble UI — use the same   
+    card/hairline system). Show a few example exchanges as static mock content.   
+    Include a small "Firewall active" badge (--trust-chain color) near the input   
+    field with a tooltip explaining it screens for injected/malicious instructions   
+    in uploaded case documents — this can be a static badge, no functional   
+    firewall needed for the demo.
+
+11\. \*\*Encryption \+ Blockchain \+ Login Filter \+ Cryptographic Ledger (module 5\)   
+    and Decentralised Identity (module 7)\*\* — combine into one "Trust & Access"   
+    screen: a simple architecture-diagram-style visual (nodes: Officer Login →   
+    DID Verification → Encrypted Record → Ledger Anchor, connected by hairline   
+    arrows, using \--trust-chain) plus a small access log table below (mono   
+    timestamps, officer ID, action, verification status pill). This screen should   
+    feel authoritative and simple — it's explaining infrastructure, not simulating   
+    a working blockchain.
+
+\#\# INTERACTION
+
+\- Selecting a map hotspot cross-filters the Knowledge Graph, Dashboard, AND Pattern   
+  Matching panel simultaneously — brief 300ms highlight pulse on newly-filtered   
+  elements so the causality is visually legible. This cross-module link is the   
+  core "wow" moment of the whole product.  
+\- Any Case ID, anywhere in the product (table, graph node, alert), is clickable   
+  and routes to the Evidence & Timeline view for that case — this consistency is   
+  what makes 11 modules feel like one product instead of 11 prototypes.  
+\- All focus states: 2px solid \--accent-focus outline, 2px offset, always visible  
+\- Empty/loading states: skeleton screens matching exact final layout, instructional   
+  copy, no layout shift on data arrival
+
+\#\# TECH
+
+React \+ Vite, Tailwind (theme extension for all tokens, zero inline hex),   
+react-router for the module routes, react-leaflet \+ leaflet.heat, react-force-graph,   
+recharts, lucide-react (outline style, consistent 1.5px stroke weight everywhere).   
+Mock data in /mockData — one shared dataset of districts/cases/suspects/victims/  
+locations that every module reads from, so cross-module linking works against   
+consistent IDs, not disconnected fake data per screen. Structure fetch calls so   
+swapping in real endpoints later needs no component changes.
+
+Before writing code: state your final type scale, spacing scale, color tokens,   
+and route/nav structure as a short summary, so I can sanity check the system   
+before you build against it. Then build Tier 1 completely before starting Tier 2\.  

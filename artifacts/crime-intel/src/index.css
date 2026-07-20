@@ -1,0 +1,216 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+
+@theme inline {
+  --color-background: var(--bg-canvas);
+  --color-foreground: var(--ink-primary);
+  --color-border: var(--border-hairline);
+  
+  --color-card: var(--bg-surface);
+  --color-card-foreground: var(--ink-primary);
+  --color-card-border: var(--border-hairline);
+  
+  --color-primary: var(--accent-focus);
+  --color-primary-foreground: #ffffff;
+  
+  --color-muted: var(--border-hairline);
+  --color-muted-foreground: var(--ink-secondary);
+  
+  --color-accent: var(--accent-focus);
+  --color-accent-foreground: #ffffff;
+  
+  --color-destructive: var(--accent-critical);
+  --color-destructive-foreground: #ffffff;
+  
+  --color-data-1: var(--data-1);
+  --color-data-2: var(--data-2);
+  --color-data-3: var(--data-3);
+  --color-data-4: var(--data-4);
+  --color-data-5: var(--data-5);
+
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'General Sans', 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+}
+
+:root {
+  --bg-canvas: #FAFAF9;
+  --bg-surface: #FFFFFF;
+  --border-hairline: #EBEAE6;
+  --ink-primary: #16181A;
+  --ink-secondary: #71767D;
+  --ink-tertiary: #A8ACB1;
+  
+  --accent-critical: #C1352B;
+  --accent-focus: #1F3A5C;
+  --accent-resolved: #2F6E52;
+  --accent-warning: #B8863F;
+  --trust-chain: #4A4E54;
+  
+  --data-1: #EEF2F5;
+  --data-2: #BFD0DE;
+  --data-3: #8FAFC7;
+  --data-4: #4F7A9E;
+  --data-5: #1F3A5C;
+
+  /* Required for shadcn */
+  --background: var(--bg-canvas);
+  --foreground: var(--ink-primary);
+  --card: var(--bg-surface);
+  --card-foreground: var(--ink-primary);
+  --card-border: var(--border-hairline);
+  --popover: var(--bg-surface);
+  --popover-foreground: var(--ink-primary);
+  --popover-border: var(--border-hairline);
+  --primary: var(--accent-focus);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--border-hairline);
+  --secondary-foreground: var(--ink-primary);
+  --muted: var(--border-hairline);
+  --muted-foreground: var(--ink-secondary);
+  --accent: var(--accent-focus);
+  --accent-foreground: #FFFFFF;
+  --destructive: var(--accent-critical);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--border-hairline);
+  --input: var(--border-hairline);
+  --ring: var(--accent-focus);
+
+  /* KSP Colors globally defined to avoid issues */
+  --navy-deep: oklch(0.22 0.05 250);   /* #0B1F3A */
+  --navy: oklch(0.28 0.06 250);
+  --navy-soft: oklch(0.35 0.05 250);
+  --khaki: oklch(0.62 0.07 75);        /* #A68B5B */
+  --gold: oklch(0.75 0.13 82);         /* #C9A227 */
+  --gold-soft: oklch(0.86 0.09 88);
+  --silver: oklch(0.92 0.005 250);
+  --steel: oklch(0.55 0.02 250);
+  --slate-govt: oklch(0.42 0.03 250);
+}
+
+:root.theme-ksp {
+  --bg-canvas: oklch(0.985 0.003 250);
+  --bg-surface: oklch(1 0 0);
+  --border-hairline: oklch(0.9 0.01 250);
+  --ink-primary: oklch(0.18 0.03 250);
+  --ink-secondary: oklch(0.45 0.02 250);
+  --ink-tertiary: oklch(0.55 0.02 250);
+  
+  --accent-critical: oklch(0.55 0.22 25);
+  --accent-focus: oklch(0.22 0.05 250); /* var(--navy-deep) */
+  --accent-resolved: oklch(0.5 0.12 155);
+  --accent-warning: oklch(0.75 0.15 75);
+  
+  --data-1: oklch(0.955 0.006 250);
+  --data-2: oklch(0.86 0.09 88);
+  --data-3: oklch(0.75 0.13 82);
+  --data-4: oklch(0.62 0.07 75);
+  --data-5: oklch(0.22 0.05 250);
+  
+  --primary: var(--accent-focus);
+  --ring: var(--gold);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-[var(--bg-canvas)] text-[var(--ink-primary)];
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-[-0.02em];
+  }
+}
+
+@layer utilities {
+  .tabular-data {
+    @apply font-mono font-medium tabular-nums;
+  }
+  
+  .card-base {
+    @apply bg-[var(--bg-surface)] border border-[var(--border-hairline)] rounded-[8px] p-[20px] transition-all duration-120 ease-in-out;
+  }
+  
+  .card-hover {
+    @apply hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] hover:border-gray-300;
+  }
+
+  .text-caption { @apply text-[13px] leading-[16px]; }
+  .text-body { @apply text-[14px] leading-[20px]; }
+  .text-emphasized { @apply text-[16px] leading-[24px]; }
+  .text-card-title { @apply font-display text-[20px] leading-[28px] font-medium; }
+  .text-section-header { @apply font-display text-[32px] leading-[38px] font-semibold; }
+
+  /* Pulse animation for hotspot anomaly */
+  @keyframes hotspot-pulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.5); opacity: 0.15; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+  }
+  .animate-hotspot-pulse {
+    animation: hotspot-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-hotspot-pulse {
+      animation: none;
+      opacity: 0.15;
+    }
+  }
+
+  @keyframes highlight-flash {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(31, 58, 92, 0.1); }
+    100% { background-color: transparent; }
+  }
+  .animate-highlight {
+    animation: highlight-flash 300ms ease-out forwards;
+  }
+
+  /* Map container fix */
+  .leaflet-container {
+    background-color: var(--bg-canvas) !important;
+    z-index: 10; /* Keep it below popovers/modals */
+  }
+
+  /* KSP Government styles */
+  .govt-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-hairline);
+    border-radius: 8px;
+    box-shadow: 0 1px 2px 0 rgba(11,31,58,0.04);
+  }
+
+  .govt-panel {
+    background: linear-gradient(180deg, var(--bg-surface) 0%, oklch(0.98 0.005 250) 100%);
+    border: 1px solid var(--border-hairline);
+    border-radius: 8px;
+  }
+
+  .topline {
+    position: relative;
+  }
+  .topline::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--khaki));
+    border-radius: 8px 8px 0 0;
+  }
+
+  .scanline {
+    background-image:
+      linear-gradient(rgba(11,31,58,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(11,31,58,0.02) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
