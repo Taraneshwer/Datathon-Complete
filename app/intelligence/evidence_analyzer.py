@@ -201,13 +201,16 @@ class EvidenceAnalyzer:
     def _run_whisper(self, file_path: str) -> str:
         """OpenAI Whisper speech-to-text transcription."""
         try:
-            import whisper
+            from faster_whisper import WhisperModel
             if self._whisper_model is None:
-                self._whisper_model = whisper.load_model(
-                    self._settings.whisper_model_size
+                self._whisper_model = WhisperModel(
+                    self._settings.whisper_model_size,
+                    device="cpu", 
+                    compute_type="int8"
                 )
-            result = self._whisper_model.transcribe(file_path)
-            return result.get("text", "")
+            segments, info = self._whisper_model.transcribe(file_path)
+            result_text = " ".join([segment.text for segment in segments])
+            return result_text
         except Exception as exc:
             logger.warning("Whisper transcription failed: %s", exc)
             return ""

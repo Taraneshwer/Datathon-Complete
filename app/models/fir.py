@@ -103,15 +103,14 @@ class AlertType(str, Enum):
 class TimestampMixin(SQLModel):
     created_at: datetime = Field(
         default_factory=datetime.now,
-        sa_column=Column(sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa_column_kwargs={"server_default": sa.func.now()},
     )
     updated_at: datetime = Field(
         default_factory=datetime.now,
-        sa_column=Column(
-            sa.DateTime(timezone=True),
-            server_default=sa.func.now(),
-            onupdate=sa.func.now(),
-        ),
+        sa_column_kwargs={
+            "server_default": sa.func.now(),
+            "onupdate": sa.func.now(),
+        },
     )
 
 
@@ -124,7 +123,6 @@ class Officer(TimestampMixin, table=True):
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4,
-        primary_key=True,
         sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
     )
     badge_number: str = Field(index=True, unique=True, max_length=32)
@@ -152,7 +150,6 @@ class Case(TimestampMixin, table=True):
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4,
-        primary_key=True,
         sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
     )
     fir_number: str = Field(index=True, unique=True, max_length=64)
@@ -202,7 +199,6 @@ class EvidenceItem(TimestampMixin, table=True):
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4,
-        primary_key=True,
         sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
     )
     case_id: uuid.UUID = Field(foreign_key="cases.id", index=True)
@@ -241,7 +237,6 @@ class BlockchainRecord(TimestampMixin, table=True):
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4,
-        primary_key=True,
         sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
     )
     case_id: uuid.UUID = Field(foreign_key="cases.id", index=True)
@@ -265,7 +260,6 @@ class SystemAlert(TimestampMixin, table=True):
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4,
-        primary_key=True,
         sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
     )
     case_id: uuid.UUID | None = Field(default=None, foreign_key="cases.id", index=True)
@@ -291,7 +285,6 @@ class AuditTrail(TimestampMixin, table=True):
 
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4,
-        primary_key=True,
         sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
     )
     case_id: uuid.UUID | None = Field(default=None, foreign_key="cases.id", index=True)

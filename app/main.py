@@ -15,6 +15,7 @@ Middleware: CORS → GZip → PromptInjectionFirewall → Timing
 from __future__ import annotations
 
 import logging
+import os
 import time
 from contextlib import asynccontextmanager
 from typing import Any
@@ -24,7 +25,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from app.config import get_settings
@@ -228,14 +230,33 @@ def create_app() -> FastAPI:
             "environment": settings.environment,
         }
 
-    @app.get("/", include_in_schema=False)
-    async def root() -> dict[str, str]:
-        return {
-            "platform": settings.app_name,
-            "version": settings.app_version,
-            "docs": "/docs",
-            "health": "/health",
-        }
+    frontend_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist", "public")
+    if os.path.isdir(frontend_dist):
+        assets_dir = os.path.join(frontend_dist, "assets")
+        if os.path.isdir(assets_dir):
+            app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+        
+        @app.get("/{catchall:path}", include_in_schema=False)
+        async def serve_spa(catchall: str):
+            file_path = os.path.join(frontend_dist, catchall)
+            if os.path.isfile(file_path):
+                return FileResponse(file_path)
+            
+            index_path = os.path.join(frontend_dist, "index.html")
+            if os.path.isfile(index_path):
+                return FileResponse(index_path)
+            
+            return JSONResponse(status_code=404, content={"error": "Not Found"})
+    else:
+        @app.get("/", include_in_schema=False)
+        async def root() -> dict[str, str]:
+            return {
+                "platform": settings.app_name,
+                "version": settings.app_version,
+                "docs": "/docs",
+                "health": "/health",
+                "notice": "Frontend build not found.",
+            }
 
     # OpenTelemetry instrumentation
     try:
