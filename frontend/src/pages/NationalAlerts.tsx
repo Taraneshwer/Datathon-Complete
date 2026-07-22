@@ -1,6 +1,6 @@
 
 import { PageHeader, SectionCard, StatusPill } from "@/components/ksp/PageHeader";
-import { GoogleMap } from "@/components/ksp/GoogleMap";
+import { OpenStreetMap } from "@/components/ksp/OpenStreetMap";
 import { NATIONAL_ALERTS } from "@/lib/ksp-data";
 import { Radio, ArrowRight } from "lucide-react";
 
@@ -37,7 +37,7 @@ export function NationalAlerts() {
         </div>
 
         <div className="col-span-12 lg:col-span-8">
-          <GoogleMap
+          <OpenStreetMap
             center={{ lat: 14.5, lng: 76 }}
             zoom={7}
             markers={NATIONAL_ALERTS.map(a => ({ lat: a.lat, lng: a.lng, tone: a.tone as any, label: a.title }))}

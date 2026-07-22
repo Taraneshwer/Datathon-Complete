@@ -110,7 +110,7 @@ class Settings(BaseSettings):
 
     # ── Geospatial ────────────────────────────────────────────────────────────
     h3_resolution: int = Field(default=8, ge=5, le=12)  # ~0.74 km² per cell
-    google_maps_api_key: str | None = None
+    openstreetmap_tile_url: str = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
 
     @model_validator(mode="after")
     def validate_llm_credentials(self) -> "Settings":

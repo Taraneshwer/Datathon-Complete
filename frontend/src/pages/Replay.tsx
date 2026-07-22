@@ -1,6 +1,6 @@
 
 import { PageHeader, SectionCard, StatusPill } from "@/components/ksp/PageHeader";
-import { GoogleMap } from "@/components/ksp/GoogleMap";
+import { OpenStreetMap } from "@/components/ksp/OpenStreetMap";
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, SkipBack, SkipForward, Gauge } from "lucide-react";
 
@@ -39,13 +39,13 @@ export function Replay() {
       <PageHeader
         eyebrow="Investigation Agent"
         title="Crime Replay · Timeline Reconstruction"
-        description="Synchronised playback of suspect, victim and officer movement on Google Maps."
+        description="Synchronised playback of suspect, victim and officer movement on OpenStreetMap."
         actions={<StatusPill tone="info">Case KA-2886 · 12 min timeline</StatusPill>}
       />
 
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-8">
-          <GoogleMap
+          <OpenStreetMap
             center={currentEvent}
             zoom={13}
             markers={PATH.slice(0, idx + 1).map((p, i) => ({
