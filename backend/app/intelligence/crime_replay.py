@@ -9,14 +9,9 @@ GPS events, officer actions) to allow step-by-step replay.
 from __future__ import annotations
 
 import logging
-import uuid
-from datetime import datetime
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
-
-from app.models.fir import AuditTrail, Case, EvidenceItem
 from app.models.schemas import CrimeReplayResponse, TimelineEvent
+from app.repositories import AuditRepository, CaseRepository, EvidenceRepository
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +19,13 @@ logger = logging.getLogger(__name__)
 class CrimeReplayEngine:
     """
     Reconstructs the full investigation timeline for a case.
-    Aggregates events from PostgreSQL and returns a sorted timeline.
+    Aggregates events from Data Store and returns a sorted timeline.
     """
 
-    def __init__(self, db: AsyncSession) -> None:
-        self._db = db
+    def __init__(self, case_repo: CaseRepository, evidence_repo: EvidenceRepository, audit_repo: AuditRepository) -> None:
+        self._case_repo = case_repo
+        self._evidence_repo = evidence_repo
+        self._audit_repo = audit_repo
 
     async def build_timeline(self, case_id: str) -> CrimeReplayResponse:
         """
@@ -40,13 +37,8 @@ class CrimeReplayEngine:
           - Evidence collection events (EvidenceItem.collected_at)
           - Officer actions (AuditTrail records)
         """
-        cid = uuid.UUID(case_id)
-
         # Fetch case
-        case_result = await self._db.exec(
-            select(Case).where(Case.id == cid)
-        )
-        case = case_result.first()
+        case = await self._case_repo.get(case_id)
         if not case:
             raise ValueError(f"Case '{case_id}' not found.")
 
@@ -73,10 +65,7 @@ class CrimeReplayEngine:
         ))
 
         # ── Evidence collection events ────────────────────────────────────────
-        ev_result = await self._db.exec(
-            select(EvidenceItem).where(EvidenceItem.case_id == cid)
-        )
-        evidence_items = ev_result.all()
+        evidence_items = await self._evidence_repo.get_by_case(case_id)
         for ev in evidence_items:
             ts = ev.collected_at or ev.created_at
             events.append(TimelineEvent(
@@ -90,12 +79,7 @@ class CrimeReplayEngine:
             ))
 
         # ── Audit trail events ────────────────────────────────────────────────
-        audit_result = await self._db.exec(
-            select(AuditTrail)
-            .where(AuditTrail.case_id == cid)
-            .order_by(AuditTrail.created_at)
-        )
-        audit_entries = audit_result.all()
+        audit_entries = await self._audit_repo.get_by_case(case_id)
         for entry in audit_entries:
             events.append(TimelineEvent(
                 event_id=f"audit:{entry.id}",

@@ -30,11 +30,12 @@ class Settings(BaseSettings):
     secret_key: str = Field(..., min_length=32)
     api_prefix: str = "/api/v1"
 
-    # ── PostgreSQL ────────────────────────────────────────────────────────────
-    postgres_dsn: str = Field(...)
-    postgres_pool_size: int = Field(default=10, ge=1, le=100)
-    postgres_max_overflow: int = Field(default=20, ge=0, le=200)
-    postgres_pool_timeout: int = Field(default=30, ge=5)
+    # ── Zoho Catalyst Data Store ──────────────────────────────────────────────
+    zoho_catalyst_project_id: str | None = None
+    zoho_catalyst_environment: Literal["Development", "Production"] = "Development"
+    zoho_catalyst_client_id: str | None = None
+    zoho_catalyst_client_secret: str | None = None
+    zoho_catalyst_app_name: str = "crime_intel"
 
     # ── Neo4j ─────────────────────────────────────────────────────────────────
     neo4j_uri: str = Field(...)
@@ -79,11 +80,7 @@ class Settings(BaseSettings):
     fabric_channel: str = "crime-channel"
     fabric_chaincode: str = "crime-audit"
 
-    # ── Zoho Catalyst ─────────────────────────────────────────────────────────
-    zoho_catalyst_project_id: str | None = None
-    zoho_catalyst_api_token: str | None = None
-    zoho_catalyst_file_store_id: str | None = None
-    zoho_catalyst_region: str = "in"
+
 
     # ── Prompt Injection Firewall ────────────────────────────────────────────
     firewall_enabled: bool = True
@@ -113,7 +110,7 @@ class Settings(BaseSettings):
     openstreetmap_tile_url: str = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
 
     @model_validator(mode="after")
-    def validate_llm_credentials(self) -> "Settings":
+    def validate_llm_credentials(self) -> Settings:
         if self.llm_provider == "openai" and not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY must be set when LLM_PROVIDER=openai")
         if self.llm_provider == "google" and not self.google_api_key:

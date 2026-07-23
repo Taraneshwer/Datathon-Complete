@@ -12,14 +12,12 @@ Endpoints:
 from __future__ import annotations
 
 import logging
-import uuid
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
-from sqlmodel import select
 
-from app.dependencies import DBSession
+from app.dependencies import EvidenceRepoDep
 from app.intelligence.evidence_analyzer import EvidenceAnalyzer
-from app.models.fir import EvidenceItem, EvidenceStatus, EvidenceType
+from app.models.fir import EvidenceStatus, EvidenceType
 from app.models.schemas import EvidenceAnalysisResult
 
 logger = logging.getLogger(__name__)
@@ -37,7 +35,7 @@ async def analyze_evidence(
     case_id: str,
     evidence_id: str,
     evidence_type: EvidenceType,
-    db: DBSession,
+    evidence_repo: EvidenceRepoDep,
     file: UploadFile = File(...),
 ) -> EvidenceAnalysisResult:
     """
@@ -61,7 +59,8 @@ async def analyze_evidence(
         )
 
     # Save to temp path for CV processing
-    import tempfile, os
+    import os
+    import tempfile
     suffix = os.path.splitext(file.filename or "file")[1] or ".bin"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(content)
@@ -75,15 +74,11 @@ async def analyze_evidence(
         )
 
         # Persist AI analysis back to EvidenceItem
-        ev_result = await db.exec(
-            select(EvidenceItem).where(EvidenceItem.id == uuid.UUID(evidence_id))
-        )
-        ev = ev_result.first()
+        ev = await evidence_repo.get(evidence_id)
         if ev:
             ev.ai_analysis = result.model_dump(exclude={"evidence_id", "evidence_type"})
             ev.status = EvidenceStatus.ANALYZED
-            db.add(ev)
-            await db.commit()
+            await evidence_repo.update(ev)
 
     finally:
         os.unlink(tmp_path)
@@ -95,12 +90,9 @@ async def analyze_evidence(
     "/{case_id}",
     summary="List all evidence items for a case",
 )
-async def list_evidence(case_id: str, db: DBSession) -> list[dict]:
+async def list_evidence(case_id: str, evidence_repo: EvidenceRepoDep) -> list[dict]:
     """Retrieve all evidence items linked to a case with their AI analysis results."""
-    result = await db.exec(
-        select(EvidenceItem).where(EvidenceItem.case_id == uuid.UUID(case_id))
-    )
-    items = result.all()
+    items = await evidence_repo.get_by_case(case_id)
     return [
         {
             "id": str(ev.id),

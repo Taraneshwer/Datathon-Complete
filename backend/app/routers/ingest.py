@@ -59,7 +59,7 @@ async def ingest_fir(
     Ingest a First Information Report (FIR) into the crime intelligence system.
 
     This endpoint concurrently:
-    - Stores core case details in **PostgreSQL**
+    - Stores core case details in **Catalyst Data Store**
     - Writes entity nodes and relationships to **Neo4j**
     - Embeds the crime description and upserts into **Qdrant**
 

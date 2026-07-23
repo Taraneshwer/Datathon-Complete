@@ -16,9 +16,15 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query
 
-from app.dependencies import DBSession
+from app.dependencies import (
+    AlertRepoDep,
+    AuditRepoDep,
+    BlockchainRepoDep,
+    CaseRepoDep,
+    EvidenceRepoDep,
+)
 from app.intelligence.bias_detector import BiasDetector
 from app.intelligence.blind_spot_detector import BlindSpotDetector
 from app.intelligence.crime_replay import CrimeReplayEngine
@@ -48,13 +54,13 @@ router = APIRouter(prefix="/analytics", tags=["Intelligence Analytics"])
     response_model=CrimeReplayResponse,
     summary="Reconstruct crime investigation timeline",
 )
-async def get_crime_replay(case_id: str, db: DBSession) -> CrimeReplayResponse:
+async def get_crime_replay(case_id: str, case_repo: CaseRepoDep, evidence_repo: EvidenceRepoDep, audit_repo: AuditRepoDep) -> CrimeReplayResponse:
     """
     Reconstruct a complete, chronological investigation timeline for a case.
     Merges FIR registration, evidence collection, and officer action events.
     """
     try:
-        engine = CrimeReplayEngine(db)
+        engine = CrimeReplayEngine(case_repo, evidence_repo, audit_repo)
         return await engine.build_timeline(case_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -72,13 +78,13 @@ async def get_crime_replay(case_id: str, db: DBSession) -> CrimeReplayResponse:
     response_model=BiasDetectionResponse,
     summary="Detect investigation bias before court submission",
 )
-async def detect_bias(case_id: str, db: DBSession) -> BiasDetectionResponse:
+async def detect_bias(case_id: str, case_repo: CaseRepoDep, evidence_repo: EvidenceRepoDep) -> BiasDetectionResponse:
     """
     Analyze a case for systematic investigative bias including:
     evidence imbalance, witness gap, confirmation bias, and missing leads.
     """
     try:
-        detector = BiasDetector(db)
+        detector = BiasDetector(case_repo, evidence_repo)
         return await detector.analyze(case_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -144,7 +150,8 @@ async def recommend_interventions(
     summary="Run national crime early warning scan",
 )
 async def run_early_warning(
-    db: DBSession,
+    case_repo: CaseRepoDep,
+    alert_repo: AlertRepoDep,
     monitoring_days: int = Query(default=30, ge=7, le=365),
     districts: list[str] | None = Query(default=None),
 ) -> EarlyWarningResponse:
@@ -154,7 +161,7 @@ async def run_early_warning(
     Generates and persists structured alerts.
     """
     try:
-        ews = EarlyWarningSystem(db)
+        ews = EarlyWarningSystem(case_repo, alert_repo)
         return await ews.run_analysis(
             monitoring_days=monitoring_days, districts=districts
         )
@@ -171,10 +178,10 @@ async def run_early_warning(
     "/blockchain/{case_id}",
     summary="Verify blockchain audit chain integrity for a case",
 )
-async def verify_blockchain(case_id: str, db: DBSession) -> dict:
+async def verify_blockchain(case_id: str, case_repo: CaseRepoDep, blockchain_repo: BlockchainRepoDep) -> dict:
     """
     Verify the cryptographic audit chain for a case.
     Detects any tampered or missing records in the chain.
     """
-    svc = BlockchainService(db)
+    svc = BlockchainService(case_repo, blockchain_repo)
     return await svc.verify_chain(case_id)

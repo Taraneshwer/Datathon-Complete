@@ -16,7 +16,7 @@ import logging
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Query, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect, status
 
 from app.config import get_settings
 from app.models.schemas import AlertPayload
@@ -87,7 +87,7 @@ async def websocket_alerts(
                         client_id,
                         {"event": "pong", "timestamp": datetime.now().isoformat()},
                     )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # Client hasn't pinged in 2x heartbeat interval — check alive
                 alive = await manager.send_personal_json(
                     client_id,

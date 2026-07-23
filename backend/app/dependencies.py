@@ -7,27 +7,57 @@ All dependencies are declared here and used via `Depends()` in route handlers.
 """
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
-from typing import Annotated
+from typing import Annotated, Any
 
-from fastapi import Depends, Header, HTTPException, Request, status
+from fastapi import Depends, Header, Request
 from neo4j import AsyncDriver
 from qdrant_client import AsyncQdrantClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
+from app.db.catalyst import get_datastore
 from app.db.neo4j_client import get_neo4j
-from app.db.postgres import get_db
 from app.db.qdrant_client import get_qdrant
 from app.intelligence.hotspot_predictor import HotspotPredictor
 from app.intelligence.pattern_matcher import PatternMatcher
+from app.repositories import (
+    AlertRepository,
+    AuditRepository,
+    BlockchainRepository,
+    CaseRepository,
+    EvidenceRepository,
+    OfficerRepository,
+)
 from app.services.embedding_service import get_embedding_service
 from app.services.ingest_service import IngestService
 
-
 # ── Database sessions ─────────────────────────────────────────────────────────
 
-DBSession = Annotated[AsyncSession, Depends(get_db)]
+CatalystClient = Annotated[Any, Depends(get_datastore)]
+
+def get_officer_repo() -> OfficerRepository:
+    return OfficerRepository()
+
+def get_case_repo() -> CaseRepository:
+    return CaseRepository()
+
+def get_evidence_repo() -> EvidenceRepository:
+    return EvidenceRepository()
+
+def get_audit_repo() -> AuditRepository:
+    return AuditRepository()
+
+def get_alert_repo() -> AlertRepository:
+    return AlertRepository()
+
+def get_blockchain_repo() -> BlockchainRepository:
+    return BlockchainRepository()
+
+OfficerRepoDep = Annotated[OfficerRepository, Depends(get_officer_repo)]
+CaseRepoDep = Annotated[CaseRepository, Depends(get_case_repo)]
+EvidenceRepoDep = Annotated[EvidenceRepository, Depends(get_evidence_repo)]
+AuditRepoDep = Annotated[AuditRepository, Depends(get_audit_repo)]
+AlertRepoDep = Annotated[AlertRepository, Depends(get_alert_repo)]
+BlockchainRepoDep = Annotated[BlockchainRepository, Depends(get_blockchain_repo)]
 Neo4jDriver = Annotated[AsyncDriver, Depends(get_neo4j)]
 QdrantClient = Annotated[AsyncQdrantClient, Depends(get_qdrant)]
 AppSettings = Annotated[Settings, Depends(get_settings)]
@@ -36,12 +66,14 @@ AppSettings = Annotated[Settings, Depends(get_settings)]
 # ── Composite service dependencies ────────────────────────────────────────────
 
 async def get_ingest_service(
-    db: DBSession,
+    case_repo: CaseRepoDep,
+    evidence_repo: EvidenceRepoDep,
+    audit_repo: AuditRepoDep,
     neo4j: Neo4jDriver,
     qdrant: QdrantClient,
 ) -> IngestService:
     """Construct an IngestService with all DB connections pre-resolved."""
-    return IngestService(db=db, neo4j_driver=neo4j, qdrant=qdrant)
+    return IngestService(case_repo=case_repo, evidence_repo=evidence_repo, audit_repo=audit_repo, neo4j_driver=neo4j, qdrant=qdrant)
 
 
 async def get_pattern_matcher(qdrant: QdrantClient) -> PatternMatcher:
