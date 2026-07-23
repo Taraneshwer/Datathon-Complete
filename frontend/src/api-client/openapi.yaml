@@ -1,0 +1,962 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Crime Intelligence & Analytical Platform API — Karnataka State Police / SCRB
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: districts
+    description: District and hotspot data
+  - name: cases
+    description: Case management
+  - name: suspects
+    description: Suspects and victims
+  - name: graph
+    description: Knowledge graph data
+  - name: patterns
+    description: Behavioral pattern matching
+  - name: analytics
+    description: Dashboard analytics
+  - name: alerts
+    description: Early warning alerts
+  - name: evidence
+    description: Case evidence and timeline
+  - name: bias
+    description: Bias audit data
+  - name: trust
+    description: Trust, access, and ledger data
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /districts:
+    get:
+      operationId: listDistricts
+      tags: [districts]
+      summary: List all districts with crime stats
+      responses:
+        "200":
+          description: List of districts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/District"
+
+  /hotspots:
+    get:
+      operationId: listHotspots
+      tags: [districts]
+      summary: Get hotspot heatmap data, optionally filtered by district
+      parameters:
+        - name: districtId
+          in: query
+          schema:
+            type: string
+        - name: timeOfDay
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 23
+        - name: crimeType
+          in: query
+          schema:
+            type: string
+        - name: blindSpot
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Hotspot points
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HotspotPoint"
+
+  /cases:
+    get:
+      operationId: listCases
+      tags: [cases]
+      summary: List all cases
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, under_review, closed]
+        - name: districtId
+          in: query
+          schema:
+            type: string
+        - name: suspectId
+          in: query
+          schema:
+            type: string
+        - name: patternId
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Case"
+
+  /cases/{id}:
+    get:
+      operationId: getCase
+      tags: [cases]
+      summary: Get a single case by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Case detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseDetail"
+        "404":
+          description: Not found
+
+  /cases/summary:
+    get:
+      operationId: getCaseSummary
+      tags: [cases]
+      summary: Aggregate case counts by status and district
+      responses:
+        "200":
+          description: Case summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseSummary"
+
+  /suspects:
+    get:
+      operationId: listSuspects
+      tags: [suspects]
+      summary: List suspects
+      parameters:
+        - name: caseId
+          in: query
+          schema:
+            type: string
+        - name: districtId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of suspects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Suspect"
+
+  /suspects/{id}:
+    get:
+      operationId: getSuspect
+      tags: [suspects]
+      summary: Get a single suspect by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Suspect detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Suspect"
+
+  /victims:
+    get:
+      operationId: listVictims
+      tags: [suspects]
+      summary: List victims
+      parameters:
+        - name: caseId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of victims
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Victim"
+
+  /graph/nodes:
+    get:
+      operationId: listGraphNodes
+      tags: [graph]
+      summary: Get all knowledge graph nodes
+      parameters:
+        - name: caseId
+          in: query
+          schema:
+            type: string
+        - name: districtId
+          in: query
+          schema:
+            type: string
+        - name: patternId
+          in: query
+          schema:
+            type: string
+        - name: timeIndex
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Graph nodes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GraphNode"
+
+  /graph/edges:
+    get:
+      operationId: listGraphEdges
+      tags: [graph]
+      summary: Get all knowledge graph edges
+      parameters:
+        - name: caseId
+          in: query
+          schema:
+            type: string
+        - name: districtId
+          in: query
+          schema:
+            type: string
+        - name: patternId
+          in: query
+          schema:
+            type: string
+        - name: timeIndex
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Graph edges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GraphEdge"
+
+  /patterns:
+    get:
+      operationId: listPatterns
+      tags: [patterns]
+      summary: List behavioral pattern clusters (MO clusters)
+      responses:
+        "200":
+          description: Behavioral patterns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BehavioralPattern"
+
+  /patterns/{id}:
+    get:
+      operationId: getPattern
+      tags: [patterns]
+      summary: Get a single pattern with matched case IDs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Pattern detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BehavioralPattern"
+
+  /analytics/dashboard:
+    get:
+      operationId: getDashboardAnalytics
+      tags: [analytics]
+      summary: Get dashboard analytics — trend data, anomaly stats, risk forecast
+      responses:
+        "200":
+          description: Dashboard analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardAnalytics"
+
+  /analytics/trend:
+    get:
+      operationId: getCrimeTrend
+      tags: [analytics]
+      summary: Get crime trend series data for recharts
+      parameters:
+        - name: districtId
+          in: query
+          schema:
+            type: string
+        - name: months
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trend series
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrendPoint"
+
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [alerts]
+      summary: Get early warning system alerts
+      parameters:
+        - name: read
+          in: query
+          schema:
+            type: boolean
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [critical, high, medium, low]
+      responses:
+        "200":
+          description: Alert list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+
+  /alerts/risk-forecast:
+    get:
+      operationId: getRiskForecast
+      tags: [alerts]
+      summary: Get per-district risk forecast for the coming week
+      responses:
+        "200":
+          description: Risk forecast by district
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RiskForecast"
+
+  /cases/{id}/evidence:
+    get:
+      operationId: getCaseEvidence
+      tags: [evidence]
+      summary: Get evidence items for a case
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Evidence items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EvidenceItem"
+
+  /cases/{id}/timeline:
+    get:
+      operationId: getCaseTimeline
+      tags: [evidence]
+      summary: Get timeline events for a case
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Timeline events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimelineEvent"
+
+  /bias/audit:
+    get:
+      operationId: getBiasAudit
+      tags: [bias]
+      summary: Get bias audit data — closure rates and resource allocation by district/demographic
+      responses:
+        "200":
+          description: Bias audit result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BiasAudit"
+
+  /trust/access-log:
+    get:
+      operationId: listAccessLog
+      tags: [trust]
+      summary: Get officer access log for trust & identity module
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Access log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccessLogEntry"
+
+  /trust/ledger-status:
+    get:
+      operationId: getLedgerStatus
+      tags: [trust]
+      summary: Get current ledger/blockchain sync status
+      responses:
+        "200":
+          description: Ledger status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LedgerStatus"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    District:
+      type: object
+      required: [id, name, lat, lng, crimeCount, riskLevel, patrolCoverage, population]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        crimeCount:
+          type: integer
+        riskLevel:
+          type: integer
+          minimum: 1
+          maximum: 5
+        patrolCoverage:
+          type: number
+        population:
+          type: integer
+        isBlindSpot:
+          type: boolean
+        blindSpotReason:
+          type: ["string", "null"]
+
+    HotspotPoint:
+      type: object
+      required: [lat, lng, intensity, districtId, crimeType, timeOfDay]
+      properties:
+        id:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        intensity:
+          type: number
+          minimum: 0
+          maximum: 1
+        districtId:
+          type: string
+        crimeType:
+          type: string
+        timeOfDay:
+          type: integer
+        isAnomaly:
+          type: boolean
+        stationName:
+          type: ["string", "null"]
+
+    Case:
+      type: object
+      required: [id, title, status, districtId, districtName, crimeType, openedAt, officerInCharge]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum: [open, under_review, closed]
+        districtId:
+          type: string
+        districtName:
+          type: string
+        crimeType:
+          type: string
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: ["string", "null"]
+          format: date-time
+        officerInCharge:
+          type: string
+        suspectIds:
+          type: array
+          items:
+            type: string
+        victimIds:
+          type: array
+          items:
+            type: string
+        patternId:
+          type: ["string", "null"]
+        confidence:
+          type: number
+
+    CaseDetail:
+      allOf:
+        - $ref: "#/components/schemas/Case"
+        - type: object
+          properties:
+            summary:
+              type: string
+            evidenceCount:
+              type: integer
+            linkedCaseIds:
+              type: array
+              items:
+                type: string
+
+    CaseSummary:
+      type: object
+      required: [total, open, underReview, closed, byDistrict]
+      properties:
+        total:
+          type: integer
+        open:
+          type: integer
+        underReview:
+          type: integer
+        closed:
+          type: integer
+        byDistrict:
+          type: array
+          items:
+            type: object
+            required: [districtId, districtName, count]
+            properties:
+              districtId:
+                type: string
+              districtName:
+                type: string
+              count:
+                type: integer
+
+    Suspect:
+      type: object
+      required: [id, name, alias, age, caseIds, districtId, riskScore, moSummary]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        alias:
+          type: string
+        age:
+          type: integer
+        caseIds:
+          type: array
+          items:
+            type: string
+        districtId:
+          type: string
+        riskScore:
+          type: number
+        moSummary:
+          type: string
+        lastSeenAt:
+          type: ["string", "null"]
+          format: date-time
+
+    Victim:
+      type: object
+      required: [id, initials, age, caseIds, districtId]
+      properties:
+        id:
+          type: string
+        initials:
+          type: string
+        age:
+          type: integer
+        caseIds:
+          type: array
+          items:
+            type: string
+        districtId:
+          type: string
+
+    GraphNode:
+      type: object
+      required: [id, type, label, x, y, timeIndex]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [suspect, victim, location, case]
+        label:
+          type: string
+        x:
+          type: number
+        y:
+          type: number
+        timeIndex:
+          type: integer
+        moSummary:
+          type: ["string", "null"]
+        linkedCaseIds:
+          type: array
+          items:
+            type: string
+        riskScore:
+          type: ["number", "null"]
+
+    GraphEdge:
+      type: object
+      required: [id, source, target, label, timeIndex]
+      properties:
+        id:
+          type: string
+        source:
+          type: string
+        target:
+          type: string
+        label:
+          type: string
+        timeIndex:
+          type: integer
+        strength:
+          type: number
+
+    BehavioralPattern:
+      type: object
+      required: [id, label, description, confidence, caseCount, matchedCaseIds, sparkline]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+        confidence:
+          type: number
+        caseCount:
+          type: integer
+        matchedCaseIds:
+          type: array
+          items:
+            type: string
+        sparkline:
+          type: array
+          items:
+            type: integer
+        districtIds:
+          type: array
+          items:
+            type: string
+
+    DashboardAnalytics:
+      type: object
+      required: [anomalyStats, activeCaseCount, criticalAlertCount, solvedThisMonth, riskForecast]
+      properties:
+        anomalyStats:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnomalyStat"
+        activeCaseCount:
+          type: integer
+        criticalAlertCount:
+          type: integer
+        solvedThisMonth:
+          type: integer
+        riskForecast:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskForecast"
+
+    AnomalyStat:
+      type: object
+      required: [label, value, delta, isAnomaly]
+      properties:
+        label:
+          type: string
+        value:
+          type: number
+        delta:
+          type: number
+        isAnomaly:
+          type: boolean
+        unit:
+          type: ["string", "null"]
+
+    TrendPoint:
+      type: object
+      required: [month, crimeCount, historicalAverage, districtId]
+      properties:
+        month:
+          type: string
+        crimeCount:
+          type: integer
+        historicalAverage:
+          type: number
+        districtId:
+          type: string
+
+    Alert:
+      type: object
+      required: [id, title, districtId, districtName, severity, timestamp, read, message]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        districtId:
+          type: string
+        districtName:
+          type: string
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        timestamp:
+          type: string
+          format: date-time
+        read:
+          type: boolean
+        message:
+          type: string
+        linkedCaseIds:
+          type: array
+          items:
+            type: string
+
+    RiskForecast:
+      type: object
+      required: [districtId, districtName, riskLevel, trend]
+      properties:
+        districtId:
+          type: string
+        districtName:
+          type: string
+        riskLevel:
+          type: integer
+          minimum: 1
+          maximum: 5
+        trend:
+          type: string
+          enum: [up, flat, down]
+
+    EvidenceItem:
+      type: object
+      required: [id, caseId, type, label, timestamp, confidence, verified]
+      properties:
+        id:
+          type: string
+        caseId:
+          type: string
+        type:
+          type: string
+          enum: [document, image, audio, video, forensic, testimony, digital]
+        label:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        confidence:
+          type: number
+        verified:
+          type: boolean
+        notes:
+          type: ["string", "null"]
+
+    TimelineEvent:
+      type: object
+      required: [id, caseId, timestamp, title, description, type]
+      properties:
+        id:
+          type: string
+        caseId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [incident, arrest, evidence_collected, witness_statement, court, update, alert]
+        officerId:
+          type: ["string", "null"]
+        evidenceIds:
+          type: array
+          items:
+            type: string
+
+    BiasAudit:
+      type: object
+      required: [generatedAt, buckets, disparity]
+      properties:
+        generatedAt:
+          type: string
+          format: date-time
+        buckets:
+          type: array
+          items:
+            $ref: "#/components/schemas/BiasAuditBucket"
+        disparity:
+          $ref: "#/components/schemas/BiasDisparity"
+
+    BiasAuditBucket:
+      type: object
+      required: [label, closureRate, resourceAllocation, caseCount]
+      properties:
+        label:
+          type: string
+        closureRate:
+          type: number
+        resourceAllocation:
+          type: number
+        caseCount:
+          type: integer
+        flagged:
+          type: boolean
+
+    BiasDisparity:
+      type: object
+      required: [detected, severity, description, recommendation]
+      properties:
+        detected:
+          type: boolean
+        severity:
+          type: string
+          enum: [none, low, moderate, high]
+        description:
+          type: string
+        recommendation:
+          type: string
+
+    AccessLogEntry:
+      type: object
+      required: [id, officerId, officerName, action, timestamp, verificationStatus, blockRef]
+      properties:
+        id:
+          type: string
+        officerId:
+          type: string
+        officerName:
+          type: string
+        action:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        verificationStatus:
+          type: string
+          enum: [verified, pending, failed]
+        blockRef:
+          type: string
+
+    LedgerStatus:
+      type: object
+      required: [state, blockHeight, lastBlockHash, lastAnchoredAt]
+      properties:
+        state:
+          type: string
+          enum: [synced, verifying, integrity_alert]
+        blockHeight:
+          type: integer
+        lastBlockHash:
+          type: string
+        lastAnchoredAt:
+          type: string
+          format: date-time

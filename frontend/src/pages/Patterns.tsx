@@ -1,4 +1,4 @@
-import { useListPatterns } from '@workspace/api-client-react';
+import { useListPatterns } from '@/api-client';
 
 import { useIntel } from '../context/IntelContext';
 import { PageTransition, StaggerItem } from '../components/Motion';

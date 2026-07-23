@@ -3,7 +3,7 @@
  * These fields are present in the enriched mock data and any real backend
  * that returns them in the same payload shape.
  */
-import type { CaseDetail, Suspect } from '@workspace/api-client-react';
+import type { CaseDetail, Suspect } from '@/api-client';
 
 export type CasePriority = 'heinous' | 'serious' | 'minor';
 export type BailStatus = 'in_custody' | 'bailed' | 'absconding' | 'acquitted';

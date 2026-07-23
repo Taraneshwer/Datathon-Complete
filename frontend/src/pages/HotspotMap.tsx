@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useListHotspots, useListDistricts } from '@workspace/api-client-react';
+import { useListHotspots, useListDistricts } from '@/api-client';
 
 import { useIntel } from '../context/IntelContext';
 import { PageTransition } from '../components/Motion';

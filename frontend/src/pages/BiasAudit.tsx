@@ -1,4 +1,4 @@
-import { useGetBiasAudit } from '@workspace/api-client-react';
+import { useGetBiasAudit } from '@/api-client';
 
 import { PageTransition, StaggerItem } from '../components/Motion';
 import { Scale as BalanceScale, AlertTriangle, CheckCircle2 } from 'lucide-react';

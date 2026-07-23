@@ -1,10 +1,10 @@
-import { useListAlerts } from '@workspace/api-client-react';
+import { useListAlerts } from '@/api-client';
 
 import { PageTransition, StaggerItem } from '../components/Motion';
 import { SeverityBadge } from '../components/Badges';
 import { CaseIdLink } from '../components/CaseIdLink';
 import { Bell, CheckCircle2 } from 'lucide-react';
-import { AlertSeverity } from '@workspace/api-client-react';
+import { AlertSeverity } from '@/api-client';
 
 export function EarlyWarning() {
   const { data: alertsData } = useListAlerts();

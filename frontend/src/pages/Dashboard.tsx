@@ -1,4 +1,4 @@
-import { useGetDashboardAnalytics, useGetCrimeTrend, useListCases } from '@workspace/api-client-react';
+import { useGetDashboardAnalytics, useGetCrimeTrend, useListCases } from '@/api-client';
 
 import { PageTransition, StaggerItem } from '../components/Motion';
 import { CaseIdLink } from '../components/CaseIdLink';

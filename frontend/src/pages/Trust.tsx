@@ -1,8 +1,8 @@
 import { PageTransition, StaggerItem } from '../components/Motion';
 import { Shield, Lock, FileKey, Database, Link as LinkIcon, CheckCircle2 } from 'lucide-react';
-import { useGetLedgerStatus, useListAccessLog } from '@workspace/api-client-react';
+import { useGetLedgerStatus, useListAccessLog } from '@/api-client';
 
-import { AccessLogEntryVerificationStatus, LedgerStatusState } from '@workspace/api-client-react';
+import { AccessLogEntryVerificationStatus, LedgerStatusState } from '@/api-client';
 
 export function TrustOversight() {
   const { data: ledgerData } = useGetLedgerStatus();

@@ -1,9 +1,9 @@
 import { Suspense, lazy, useState, useEffect } from 'react';
 import { PageTransition } from '../components/Motion';
 import { useIntel } from '../context/IntelContext';
-import { useListGraphNodes, useListGraphEdges } from '@workspace/api-client-react';
+import { useListGraphNodes, useListGraphEdges } from '@/api-client';
 
-import { GraphNodeType } from '@workspace/api-client-react';
+import { GraphNodeType } from '@/api-client';
 import { Skeleton } from '../components/Skeleton';
 import { CaseIdLink } from '../components/CaseIdLink';
 

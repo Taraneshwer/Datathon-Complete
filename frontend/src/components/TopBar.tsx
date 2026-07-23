@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { useIntel } from '../context/IntelContext';
-import { useHealthCheck, useGetLedgerStatus } from '@workspace/api-client-react';
-import { LedgerStatusState } from '@workspace/api-client-react';
+import { useHealthCheck, useGetLedgerStatus } from '@/api-client';
+import { LedgerStatusState } from '@/api-client';
 import { ShieldCheck, ShieldAlert, Link as LinkIcon, Activity, ChevronRight, Menu } from 'lucide-react';
 import { useState, useEffect } from 'react';
 

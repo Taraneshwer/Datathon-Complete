@@ -1,11 +1,11 @@
-export * from '@workspace/api-client-react';
+export * from '@/api-client';
 import {
   District, HotspotPoint, CaseDetail, Suspect, Victim,
   GraphNode, GraphEdge, BehavioralPattern, DashboardAnalytics,
   Alert, EvidenceItem, TimelineEvent, BiasAudit, AccessLogEntry, LedgerStatus,
   CaseStatus, AlertSeverity, RiskForecastTrend, EvidenceItemType, TimelineEventType,
   GraphNodeType, AccessLogEntryVerificationStatus, LedgerStatusState, BiasDisparitySeverity
-} from '@workspace/api-client-react';
+} from '@/api-client';
 import type { PoliceCase, PoliceSuspect } from '../types/police';
 
 // ─────────────────────────────────────────────

@@ -1,11 +1,11 @@
 import { useRoute } from 'wouter';
-import { useGetCase, useGetCaseEvidence, useGetCaseTimeline } from '@workspace/api-client-react';
+import { useGetCase, useGetCaseEvidence, useGetCaseTimeline } from '@/api-client';
 
 import { PageTransition, StaggerItem } from '../components/Motion';
 import { StatusPill } from '../components/Badges';
 import { Skeleton } from '../components/Skeleton';
 import { FileText, Camera, ShieldCheck, MapPin, Fingerprint, Calendar, ShieldAlert } from 'lucide-react';
-import { EvidenceItemType, TimelineEventType } from '@workspace/api-client-react';
+import { EvidenceItemType, TimelineEventType } from '@/api-client';
 
 export function CaseEvidence() {
   const [match, params] = useRoute('/cases/:id');

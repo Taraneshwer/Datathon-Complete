@@ -1,4 +1,4 @@
-import { CaseStatus, AlertSeverity } from '@workspace/api-client-react';
+import { CaseStatus, AlertSeverity } from '@/api-client';
 
 export function StatusPill({ status }: { status: CaseStatus }) {
   switch (status) {
