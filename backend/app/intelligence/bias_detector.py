@@ -16,16 +16,13 @@ court submission, including:
 from __future__ import annotations
 
 import logging
-import uuid
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select, func
-
-from app.models.fir import Case, EvidenceItem, EvidenceType
+from app.models.fir import EvidenceType
 from app.models.schemas import (
     BiasDetectionResponse,
     BiasIndicator,
 )
+from app.repositories import CaseRepository, EvidenceRepository
 
 logger = logging.getLogger(__name__)
 
@@ -33,24 +30,19 @@ logger = logging.getLogger(__name__)
 class BiasDetector:
     """Analyzes investigation completeness and detects systematic biases."""
 
-    def __init__(self, db: AsyncSession) -> None:
-        self._db = db
+    def __init__(self, case_repo: CaseRepository, evidence_repo: EvidenceRepository) -> None:
+        self._case_repo = case_repo
+        self._evidence_repo = evidence_repo
 
     async def analyze(self, case_id: str) -> BiasDetectionResponse:
         """
         Run all bias checks against a case and return a structured report.
         """
-        cid = uuid.UUID(case_id)
-
-        case_result = await self._db.exec(select(Case).where(Case.id == cid))
-        case = case_result.first()
+        case = await self._case_repo.get(case_id)
         if not case:
             raise ValueError(f"Case '{case_id}' not found.")
 
-        ev_result = await self._db.exec(
-            select(EvidenceItem).where(EvidenceItem.case_id == cid)
-        )
-        evidence = ev_result.all()
+        evidence = await self._evidence_repo.get_by_case(case_id)
 
         indicators: list[BiasIndicator] = []
         missing_leads: list[str] = []
@@ -134,10 +126,9 @@ class BiasDetector:
         bias_detected = bias_score >= 0.18
 
         if bias_detected:
-            # Update the case flag in PostgreSQL
+            # Update the case flag in Catalyst
             case.bias_detected = True
-            self._db.add(case)
-            await self._db.flush()
+            await self._case_repo.update(case)
 
         logger.info(
             "BiasDetector: case=%s score=%.2f indicators=%d",

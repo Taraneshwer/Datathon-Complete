@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from functools import lru_cache
 
 import numpy as np
 from numpy.typing import NDArray
@@ -40,7 +39,7 @@ class EmbeddingService:
         self._settings = get_settings()
 
     @classmethod
-    async def load(cls) -> "EmbeddingService":
+    async def load(cls) -> EmbeddingService:
         """
         Asynchronously load the sentence-transformers model.
         Loading is CPU-bound; offloaded to thread pool.

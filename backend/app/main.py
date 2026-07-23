@@ -4,7 +4,7 @@ app/main.py
 AI Crime Intelligence & Investigation Platform — FastAPI Application Factory
 
 Startup sequence (lifespan):
-  1. PostgreSQL engine + table creation
+  1. Catalyst Data Store engine + SDK initialization
   2. Neo4j driver + schema bootstrap
   3. Qdrant client + collection bootstrap
   4. Embedding model warm-up (BGE-M3)
@@ -25,13 +25,13 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from app.config import get_settings
+from app.db.catalyst import close_catalyst, init_catalyst
 from app.db.neo4j_client import close_neo4j, init_neo4j
-from app.db.postgres import close_engine, create_db_tables, init_engine
 from app.db.qdrant_client import close_qdrant, init_qdrant
 from app.intelligence.firewall import PromptInjectionFirewall
 from app.models.schemas import ErrorDetail, ErrorResponse
@@ -44,7 +44,6 @@ from app.routers import (
     websocket_router,
 )
 from app.services.embedding_service import init_embedding_service
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Logging
@@ -89,15 +88,26 @@ async def lifespan(app: FastAPI):
     logger.info(banner)
 
     # ── Startup ───────────────────────────────────────────────────────────────
-    logger.info("[1/4] PostgreSQL …")
-    await init_engine()
-    await create_db_tables()
+    logger.info("[1/4] Catalyst Data Store …")
+    await init_catalyst()
 
     logger.info("[2/4] Neo4j …")
-    await init_neo4j()
+    try:
+        await init_neo4j()
+    except Exception as e:
+        if settings.environment == "development":
+            logger.warning("Running in development mode without Neo4j context. Neo4j calls will fail.")
+        else:
+            raise
 
     logger.info("[3/4] Qdrant …")
-    await init_qdrant()
+    try:
+        await init_qdrant()
+    except Exception as e:
+        if settings.environment == "development":
+            logger.warning("Running in development mode without Qdrant context. Vector operations will fail.")
+        else:
+            raise
 
     logger.info("[4/4] Loading embedding model (%s) …", settings.embedding_model)
     await init_embedding_service()
@@ -110,7 +120,7 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down …")
     await close_qdrant()
     await close_neo4j()
-    await close_engine()
+    await close_catalyst()
     logger.info("Shutdown complete.")
 
 

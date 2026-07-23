@@ -18,8 +18,6 @@ import logging
 
 import pyotp
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 
 from app.auth.jwt_handler import (
     create_access_token,
@@ -28,10 +26,10 @@ from app.auth.jwt_handler import (
     hash_password,
     verify_password,
 )
-from app.auth.rbac import CurrentOfficerDep, require_min_role
+from app.auth.rbac import CurrentOfficerDep
 from app.config import get_settings
-from app.dependencies import DBSession
-from app.models.fir import AuditAction, AuditTrail, Officer, OfficerRole
+from app.dependencies import AuditRepoDep, OfficerRepoDep
+from app.models.fir import AuditAction, AuditTrail, Officer
 from app.models.schemas import LoginRequest, OfficerCreate, TokenResponse
 
 logger = logging.getLogger(__name__)
@@ -45,15 +43,12 @@ router = APIRouter(prefix="/auth", tags=["Authentication & Identity"])
     response_model=TokenResponse,
     summary="Authenticate officer and issue JWT tokens",
 )
-async def login(payload: LoginRequest, db: DBSession) -> TokenResponse:
+async def login(payload: LoginRequest, officer_repo: OfficerRepoDep, audit_repo: AuditRepoDep) -> TokenResponse:
     """
     Authenticate with badge number + password. Optionally verify TOTP MFA code.
     Returns short-lived access token and long-lived refresh token.
     """
-    result = await db.exec(
-        select(Officer).where(Officer.badge_number == payload.badge_number)
-    )
-    officer = result.first()
+    officer = await officer_repo.get_by_badge(payload.badge_number)
 
     if not officer or not verify_password(payload.password, officer.hashed_password):
         raise HTTPException(
@@ -87,13 +82,12 @@ async def login(payload: LoginRequest, db: DBSession) -> TokenResponse:
     refresh_token = create_refresh_token(subject=str(officer.id))
 
     # Audit login
-    db.add(AuditTrail(
+    await audit_repo.create(AuditTrail(
         officer_id=officer.id,
         action=AuditAction.LOGIN,
         actor=officer.badge_number,
         detail="Successful login",
     ))
-    await db.commit()
 
     return TokenResponse(
         access_token=access_token,
@@ -105,7 +99,7 @@ async def login(payload: LoginRequest, db: DBSession) -> TokenResponse:
 
 
 @router.post("/refresh", summary="Refresh access token")
-async def refresh_token(refresh_tok: str, db: DBSession) -> dict:
+async def refresh_token(refresh_tok: str, officer_repo: OfficerRepoDep) -> dict:
     """Exchange a valid refresh token for a new access token."""
     try:
         payload = decode_token(refresh_tok)
@@ -118,9 +112,7 @@ async def refresh_token(refresh_tok: str, db: DBSession) -> dict:
             detail="Invalid or expired refresh token.",
         )
 
-    import uuid
-    result = await db.exec(select(Officer).where(Officer.id == uuid.UUID(officer_id)))
-    officer = result.first()
+    officer = await officer_repo.get(officer_id)
     if not officer or not officer.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Officer not found.")
 
@@ -138,13 +130,10 @@ async def refresh_token(refresh_tok: str, db: DBSession) -> dict:
     summary="Register a new officer (admin only)",
     dependencies=[],  # Add require_min_role(OfficerRole.DISTRICT_ADMIN) in production
 )
-async def register_officer(payload: OfficerCreate, db: DBSession) -> dict:
+async def register_officer(payload: OfficerCreate, officer_repo: OfficerRepoDep) -> dict:
     """Create a new officer account with RBAC role assignment."""
-    # Check badge uniqueness
-    existing = await db.exec(
-        select(Officer).where(Officer.badge_number == payload.badge_number)
-    )
-    if existing.first():
+    existing = await officer_repo.get_by_badge(payload.badge_number)
+    if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Badge number '{payload.badge_number}' already registered.",
@@ -159,9 +148,8 @@ async def register_officer(payload: OfficerCreate, db: DBSession) -> dict:
         station_code=payload.station_code,
         district=payload.district,
     )
-    db.add(officer)
-    await db.commit()
-    await db.refresh(officer)
+    
+    await officer_repo.create(officer)
 
     return {
         "message": "Officer registered successfully.",
@@ -182,13 +170,9 @@ async def get_me(current_officer: CurrentOfficerDep) -> dict:
 
 
 @router.post("/mfa/setup", summary="Generate TOTP MFA secret for officer")
-async def setup_mfa(current_officer: CurrentOfficerDep, db: DBSession) -> dict:
+async def setup_mfa(current_officer: CurrentOfficerDep, officer_repo: OfficerRepoDep) -> dict:
     """Generate a TOTP secret and provisioning URI for authenticator apps."""
-    import uuid
-    result = await db.exec(
-        select(Officer).where(Officer.id == uuid.UUID(current_officer.officer_id))
-    )
-    officer = result.first()
+    officer = await officer_repo.get(current_officer.officer_id)
     if not officer:
         raise HTTPException(status_code=404, detail="Officer not found.")
 
@@ -199,8 +183,7 @@ async def setup_mfa(current_officer: CurrentOfficerDep, db: DBSession) -> dict:
     )
 
     officer.mfa_secret = secret
-    db.add(officer)
-    await db.commit()
+    await officer_repo.update(officer)
 
     return {"secret": secret, "provisioning_uri": uri,
             "message": "Scan the URI with Google Authenticator or similar app."}
@@ -208,14 +191,10 @@ async def setup_mfa(current_officer: CurrentOfficerDep, db: DBSession) -> dict:
 
 @router.post("/mfa/verify", summary="Enable MFA after verifying TOTP code")
 async def verify_mfa(
-    code: str, current_officer: CurrentOfficerDep, db: DBSession
+    code: str, current_officer: CurrentOfficerDep, officer_repo: OfficerRepoDep
 ) -> dict:
     """Verify the TOTP code and activate MFA for the officer account."""
-    import uuid
-    result = await db.exec(
-        select(Officer).where(Officer.id == uuid.UUID(current_officer.officer_id))
-    )
-    officer = result.first()
+    officer = await officer_repo.get(current_officer.officer_id)
     if not officer or not officer.mfa_secret:
         raise HTTPException(status_code=400, detail="MFA secret not set up. Call /mfa/setup first.")
 
@@ -223,7 +202,6 @@ async def verify_mfa(
         raise HTTPException(status_code=401, detail="Invalid TOTP code.")
 
     officer.mfa_enabled = True
-    db.add(officer)
-    await db.commit()
+    await officer_repo.update(officer)
 
     return {"message": "MFA successfully enabled.", "mfa_enabled": True}

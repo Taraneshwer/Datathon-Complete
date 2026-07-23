@@ -14,14 +14,11 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.models.fir import (
     AlertType,
-    AuditAction,
-    CrimeSeverity,
     CaseStatus,
-    EvidenceStatus,
+    CrimeSeverity,
     EvidenceType,
     OfficerRole,
 )
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Graph entity sub-schemas
@@ -159,7 +156,7 @@ class FIRIngestRequest(BaseModel):
     graph_entities: GraphEntities = Field(default_factory=GraphEntities)
 
     @model_validator(mode="after")
-    def validate_location_pair(self) -> "FIRIngestRequest":
+    def validate_location_pair(self) -> FIRIngestRequest:
         if (self.latitude is None) != (self.longitude is None):
             raise ValueError("Both latitude and longitude must be provided together.")
         return self

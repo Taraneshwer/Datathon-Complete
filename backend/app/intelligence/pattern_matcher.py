@@ -17,7 +17,7 @@ import logging
 from typing import Any
 
 from qdrant_client import AsyncQdrantClient
-from qdrant_client.models import Filter, FieldCondition, MatchValue, ScoredPoint
+from qdrant_client.models import FieldCondition, Filter, MatchValue, ScoredPoint
 
 from app.config import get_settings
 from app.models.schemas import PatternMatch, PatternMatchResponse

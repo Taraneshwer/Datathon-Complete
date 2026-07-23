@@ -6,7 +6,7 @@ Provides an immutable, tamper-evident audit log for all critical operations.
 
 Architecture:
   - Each record hashes (entity_id + payload + previous_hash) with SHA-256.
-  - Records are stored in PostgreSQL's blockchain_records table.
+  - Records are stored in Catalyst Data Store's blockchain_records table.
   - A stub Hyperledger Fabric gateway interface is provided for production
     deployment — set FABRIC_GATEWAY_URL in .env to activate.
 ─────────────────────────────────────────────────────────────────────────────
@@ -20,11 +20,9 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
-
 from app.config import get_settings
 from app.models.fir import BlockchainRecord
+from app.repositories import BlockchainRepository, CaseRepository
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +34,9 @@ class BlockchainService:
     making any tampering detectable.
     """
 
-    def __init__(self, db: AsyncSession) -> None:
-        self._db = db
+    def __init__(self, case_repo: CaseRepository, blockchain_repo: BlockchainRepository) -> None:
+        self._case_repo = case_repo
+        self._blockchain_repo = blockchain_repo
         self._settings = get_settings()
 
     async def record(
@@ -107,8 +106,7 @@ class BlockchainService:
             fabric_tx_id=await self._submit_to_fabric(sha256_hash, canonical),
         )
 
-        self._db.add(record)
-        await self._db.flush()
+        await self._blockchain_repo.create(record)
 
         logger.info(
             "Blockchain record created | type=%s entity=%s hash=%.16s",
@@ -123,12 +121,10 @@ class BlockchainService:
         Verify the integrity of the entire audit chain for a case.
         Returns a report with verification status per record.
         """
-        result = await self._db.exec(
-            select(BlockchainRecord)
-            .where(BlockchainRecord.case_id == uuid.UUID(case_id))
-            .order_by(BlockchainRecord.created_at)
-        )
-        records = result.all()
+        records = await self._blockchain_repo.search(f"case_id = '{case_id}'")
+        
+        # Sort chronologically
+        records.sort(key=lambda r: r.created_at)
 
         if not records:
             return {"status": "no_records", "case_id": case_id, "verified": True}
@@ -155,14 +151,12 @@ class BlockchainService:
 
     async def _get_latest_hash(self, case_id: str) -> str | None:
         """Retrieve the SHA-256 hash of the most recent record for this case."""
-        result = await self._db.exec(
-            select(BlockchainRecord)
-            .where(BlockchainRecord.case_id == uuid.UUID(case_id))
-            .order_by(BlockchainRecord.created_at.desc())  # type: ignore[union-attr]
-            .limit(1)
-        )
-        rec = result.first()
-        return rec.sha256_hash if rec else None
+        records = await self._blockchain_repo.search(f"case_id = '{case_id}'")
+        if not records:
+            return None
+            
+        records.sort(key=lambda r: r.created_at, reverse=True)
+        return records[0].sha256_hash
 
     async def _submit_to_fabric(self, tx_hash: str, payload: str) -> str | None:
         """
@@ -173,12 +167,6 @@ class BlockchainService:
         if not settings.fabric_gateway_url:
             return None  # Local SHA-256 chain only
 
-        # ── Production Fabric integration ────────────────────────────────────
-        # In production, use the Hyperledger Fabric Python SDK or REST gateway:
-        #   POST {FABRIC_GATEWAY_URL}/channels/{channel}/chaincodes/{chaincode}
-        #   Body: {"function": "RecordAudit", "args": [tx_hash, payload]}
-        # The SDK call would be awaited here and the TX ID returned.
-        # ─────────────────────────────────────────────────────────────────────
         logger.debug(
             "Fabric gateway configured at %s — implement SDK call here.",
             settings.fabric_gateway_url,

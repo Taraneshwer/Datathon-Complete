@@ -14,7 +14,6 @@ from __future__ import annotations
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any
 
 from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncSession
 from tenacity import (
@@ -52,7 +51,6 @@ async def init_neo4j() -> None:
         auth=(settings.neo4j_user, settings.neo4j_password),
         max_connection_pool_size=settings.neo4j_max_connection_pool_size,
         connection_timeout=float(settings.neo4j_connection_timeout),
-        encrypted=False,  # Set True + supply TLS certs in production
     )
 
     # Verify connectivity

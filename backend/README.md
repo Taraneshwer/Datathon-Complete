@@ -27,7 +27,7 @@ External Sources (FIR, CCTNS, CCTV, GPS, Drone, IoT, Emergency Calls)
                           │
     ┌─────────────────────▼─────────────────────────────┐
     │              Intelligence Storage Layer            │
-    │  PostgreSQL  │  Neo4j  │  Qdrant                  │
+    │  Zoho Catalyst Data Store │  Neo4j  │  Qdrant │
     │  Zoho Catalyst File Store                         │
     │  Blockchain Audit Trail (Hyperledger Fabric stub) │
     └───────────────────────────────────────────────────┘
@@ -66,7 +66,7 @@ DATATHON_BACKEND/
     │   └── schemas.py        ← Pydantic v2 API schemas
     │
     ├── db/
-    │   ├── postgres.py       ← Async SQLAlchemy engine
+    │   ├── catalyst.py       ← Zoho Catalyst Data Store client
     │   ├── neo4j_client.py   ← Async Neo4j driver + schema bootstrap
     │   └── qdrant_client.py  ← Async Qdrant client + collection
     │
@@ -111,10 +111,8 @@ DATATHON_BACKEND/
 ### 1. Start Infrastructure Services
 
 ```bash
-# PostgreSQL
-docker run -d --name postgres \
-  -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=crime_intel -p 5432:5432 postgres:16
+# Catalyst Data Store
+# (Configured natively via AppSail or Zoho Catalyst CLI)
 
 # Neo4j
 docker run -d --name neo4j \
@@ -131,7 +129,7 @@ docker run -d --name qdrant -p 6333:6333 qdrant/qdrant
 python -m venv .venv && .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env — fill in POSTGRES_DSN, NEO4J_*, OPENAI_API_KEY etc.
+# Edit .env — fill in ZOHO_CATALYST_PROJECT_ID, NEO4J_*, NVIDIA_API_KEY etc.
 ```
 
 ### 3. Run
@@ -159,7 +157,7 @@ API Docs → **http://localhost:8000/docs**
 ### Ingestion (`/api/v1/ingest`)
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/ingest` | Ingest FIR → Trust → PostgreSQL + Neo4j + Qdrant + Blockchain |
+| `POST` | `/ingest` | Ingest FIR → Trust → Catalyst Data Store + Neo4j + Qdrant + Blockchain |
 | `POST` | `/ingest/match` | Semantic pattern matching |
 | `POST` | `/ingest/hotspots` | DBSCAN / HDBSCAN hotspot prediction |
 
@@ -199,8 +197,8 @@ API Docs → **http://localhost:8000/docs**
 | Layer | Technology |
 |---|---|
 | Backend Framework | FastAPI + Uvicorn |
-| Language | Python 3.12 |
-| Relational DB | PostgreSQL (SQLModel + asyncpg) |
+| Language | Python 3.11 |
+| Relational DB | Zoho Catalyst Data Store (ZCQL) |
 | Graph DB | Neo4j (official async driver) |
 | Vector DB | Qdrant (AsyncQdrantClient) |
 | Embeddings | BGE-M3 (BAAI/bge-m3) |

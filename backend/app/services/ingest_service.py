@@ -5,7 +5,7 @@ FIR ingestion orchestration service.
 
 Pipeline:
   1. Data Trust Layer validation
-  2. Concurrent writes: PostgreSQL + Neo4j + Qdrant  (asyncio.gather)
+  2. Concurrent writes: Catalyst Data Store + Neo4j + Qdrant  (asyncio.gather)
   3. Blockchain audit record
 ─────────────────────────────────────────────────────────────────────────────
 """
@@ -20,12 +20,11 @@ import h3
 from neo4j import AsyncDriver
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import PointStruct
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 
 from app.config import get_settings
 from app.models.fir import AuditAction, AuditTrail, Case, EvidenceItem
 from app.models.schemas import FIRIngestRequest, IngestResponse
+from app.repositories import AuditRepository, CaseRepository, EvidenceRepository
 from app.services.blockchain_service import BlockchainService
 from app.services.embedding_service import get_embedding_service
 from app.services.graph_service import GraphService
@@ -39,14 +38,20 @@ class IngestService:
 
     def __init__(
         self,
-        db: AsyncSession,
+        case_repo: CaseRepository,
+        evidence_repo: EvidenceRepository,
+        audit_repo: AuditRepository,
         neo4j_driver: AsyncDriver,
         qdrant: AsyncQdrantClient,
     ) -> None:
-        self._db = db
+        self._case_repo = case_repo
+        self._evidence_repo = evidence_repo
+        self._audit_repo = audit_repo
         self._graph = GraphService(neo4j_driver)
         self._qdrant = qdrant
-        self._blockchain = BlockchainService(db)
+        # Since BlockchainService also needs repos now:
+        from app.repositories import BlockchainRepository
+        self._blockchain = BlockchainService(self._case_repo, BlockchainRepository())
         self._trust = TrustService()
         self._settings = get_settings()
 
@@ -78,7 +83,7 @@ class IngestService:
 
         # ── Step 3: Concurrent 3-DB writes ───────────────────────────────────
         results = await asyncio.gather(
-            self._write_postgres(payload, case_id, qdrant_point_id, actor, ip_address),
+            self._write_catalyst(payload, case_id, qdrant_point_id, actor, ip_address),
             self._write_neo4j(payload, str(case_id)),
             self._write_qdrant(payload, str(case_id), qdrant_point_id),
             return_exceptions=True,
@@ -86,7 +91,7 @@ class IngestService:
 
         for i, res in enumerate(results):
             if isinstance(res, BaseException):
-                store = ["PostgreSQL", "Neo4j", "Qdrant"][i]
+                store = ["Catalyst", "Neo4j", "Qdrant"][i]
                 logger.error("%s write failed for FIR '%s': %s", store, payload.fir_number, res)
                 raise RuntimeError(f"{store} write failed: {res}") from res
 
@@ -106,13 +111,10 @@ class IngestService:
         )
 
         # Persist blockchain hash back onto the Case row
-        case_row = (
-            await self._db.exec(select(Case).where(Case.id == case_id))
-        ).first()
+        case_row = await self._case_repo.get(case_id)
         if case_row:
             case_row.blockchain_tx_id = bc_record.sha256_hash
-            self._db.add(case_row)
-            await self._db.commit()
+            await self._case_repo.update(case_row)
 
         logger.info(
             "Ingest complete | fir=%s nodes=%d evidence=%d",
@@ -129,9 +131,9 @@ class IngestService:
             blockchain_hash=bc_record.sha256_hash,
         )
 
-    # ── PostgreSQL ─────────────────────────────────────────────────────────────
+    # ── Catalyst Data Store ──────────────────────────────────────────────────
 
-    async def _write_postgres(
+    async def _write_catalyst(
         self,
         payload: FIRIngestRequest,
         case_id: uuid.UUID,
@@ -139,10 +141,8 @@ class IngestService:
         actor: str,
         ip_address: str | None,
     ) -> int:
-        existing = await self._db.exec(
-            select(Case).where(Case.fir_number == payload.fir_number)
-        )
-        if existing.first():
+        existing = await self._case_repo.get_by_fir_number(payload.fir_number)
+        if existing:
             raise ValueError(f"FIR '{payload.fir_number}' already exists.")
 
         # Compute H3 index if coordinates are available
@@ -173,12 +173,11 @@ class IngestService:
             station_code=payload.station_code,
             qdrant_point_id=qdrant_point_id,
         )
-        self._db.add(case)
-        await self._db.flush()
+        await self._case_repo.create(case)
 
         evidence_count = 0
         for ev in payload.evidence_items:
-            self._db.add(EvidenceItem(
+            await self._evidence_repo.create(EvidenceItem(
                 case_id=case_id,
                 evidence_type=ev.evidence_type,
                 description=ev.description,
@@ -189,7 +188,7 @@ class IngestService:
             ))
             evidence_count += 1
 
-        self._db.add(AuditTrail(
+        await self._audit_repo.create(AuditTrail(
             case_id=case_id,
             action=AuditAction.INGEST,
             actor=actor,
@@ -197,7 +196,6 @@ class IngestService:
             ip_address=ip_address,
         ))
 
-        await self._db.commit()
         return evidence_count
 
     # ── Neo4j ──────────────────────────────────────────────────────────────────
