@@ -82,8 +82,8 @@ export function Settings() {
                 <StatusPill tone="success">Enabled</StatusPill>
               </li>
               <li className="flex items-center justify-between rounded-md border border-border p-2.5">
-                <span className="flex items-center gap-2 text-[var(--ink-primary)]"><Globe className="h-4 w-4 text-info" /> Google Maps API</span>
-                <StatusPill tone="info">Configure in Cloud secrets</StatusPill>
+                <span className="flex items-center gap-2 text-[var(--ink-primary)]"><Globe className="h-4 w-4 text-success" /> OpenStreetMap Tile API</span>
+                <StatusPill tone="success">Active (OpenStreetMap)</StatusPill>
               </li>
             </ul>
           </SectionCard>

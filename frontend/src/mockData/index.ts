@@ -1,11 +1,11 @@
-export * from '@/api-client';
+export * from '../lib/api-client-types';
 import {
   District, HotspotPoint, CaseDetail, Suspect, Victim,
   GraphNode, GraphEdge, BehavioralPattern, DashboardAnalytics,
   Alert, EvidenceItem, TimelineEvent, BiasAudit, AccessLogEntry, LedgerStatus,
   CaseStatus, AlertSeverity, RiskForecastTrend, EvidenceItemType, TimelineEventType,
   GraphNodeType, AccessLogEntryVerificationStatus, LedgerStatusState, BiasDisparitySeverity
-} from '@/api-client';
+} from '../lib/api-client-types';
 import type { PoliceCase, PoliceSuspect } from '../types/police';
 
 // ─────────────────────────────────────────────

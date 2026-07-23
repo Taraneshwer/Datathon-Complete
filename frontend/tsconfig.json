@@ -26,9 +26,11 @@
     "allowImportingTsExtensions": true,
     "types": ["node", "vite/client"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@workspace/api-client-react": ["./src/lib/api-client-stub.ts"]
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"]
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
+  "references": []
 }

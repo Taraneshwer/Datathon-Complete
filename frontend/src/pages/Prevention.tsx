@@ -1,6 +1,6 @@
 
 import { PageHeader, SectionCard, StatusPill } from "@/components/ksp/PageHeader";
-import { GoogleMap } from "@/components/ksp/GoogleMap";
+import { OpenStreetMap } from "@/components/ksp/OpenStreetMap";
 import { HOTSPOTS } from "@/lib/ksp-data";
 import { Lightbulb, Camera, ShieldCheck, Route as RouteIcon } from "lucide-react";
 
@@ -16,7 +16,7 @@ export function Prevention() {
 
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-8">
-          <GoogleMap heatmap={HOTSPOTS} markers={HOTSPOTS.slice(0, 5).map(m => ({ ...m, tone: "critical" }))} height={520} />
+          <OpenStreetMap heatmap={HOTSPOTS} markers={HOTSPOTS.slice(0, 5).map(m => ({ ...m, tone: "critical" }))} height={520} />
         </div>
         <aside className="col-span-12 lg:col-span-4 space-y-4">
           <SectionCard title="Coverage layers">
