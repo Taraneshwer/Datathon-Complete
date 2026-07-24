@@ -156,6 +156,9 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_credentials=True,
+        allow_origins=[
+        "https://datathon-complete-qzpldrhq.onslate.in"
+            ],
         allow_origin_regex=r"https?://(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|localhost|127\.0\.0\.1):(5173|3000|3001)$",
         allow_methods=["*"],
         allow_headers=["*"],
