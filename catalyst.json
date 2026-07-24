@@ -1,8 +1,0 @@
-{
-  "appsail": [
-    {
-      "source": "backend",
-      "name": "crime-intel-backend"
-    }
-  ]
-}

@@ -27,7 +27,7 @@ from app.repositories import (
     EvidenceRepository,
     OfficerRepository,
 )
-from app.services.embedding_service import get_embedding_service
+from ai_service.embeddings.service import get_embedding_service
 from app.services.ingest_service import IngestService
 
 # ── Database sessions ─────────────────────────────────────────────────────────
@@ -78,7 +78,7 @@ async def get_ingest_service(
 
 async def get_pattern_matcher(qdrant: QdrantClient) -> PatternMatcher:
     """Construct a PatternMatcher with embedding service + Qdrant."""
-    embedder = get_embedding_service()
+    embedder = await get_embedding_service()
     return PatternMatcher(qdrant_client=qdrant, embedding_service=embedder)
 
 

@@ -13,8 +13,6 @@ import asyncio
 import logging
 from typing import Any
 
-import numpy as np
-
 from app.models.schemas import InterventionRecommendation, InterventionResponse
 
 logger = logging.getLogger(__name__)
@@ -96,8 +94,9 @@ class InterventionRecommender:
             context:    Optional feature dict for XGBoost refinement.
         """
         if context:
+            from ai_service.ml.xgboost_engine import refine_with_xgboost
             risk_score = await asyncio.to_thread(
-                self._refine_with_xgboost, risk_score, context
+                refine_with_xgboost, risk_score, context
             )
 
         recommendations = self._apply_rules(risk_score)
@@ -123,29 +122,4 @@ class InterventionRecommender:
             if risk_score >= threshold
         ]
 
-    @staticmethod
-    def _refine_with_xgboost(
-        base_score: float, context: dict[str, Any]
-    ) -> float:
-        """
-        Optionally refine the risk score using an XGBoost model.
-        In production: load a pre-trained model from disk.
-        This stub adjusts the base score using context feature signals.
-        """
-        try:
-            # Feature signals that increase / decrease risk
-            modifiers = {
-                "repeat_offender": 0.10,
-                "gang_affiliated": 0.12,
-                "prior_violence": 0.08,
-                "high_crime_area": 0.06,
-                "nighttime": 0.04,
-                "cctv_absent": 0.05,
-            }
-            adjustment = sum(
-                delta for key, delta in modifiers.items()
-                if context.get(key, False)
-            )
-            return float(np.clip(base_score + adjustment, 0.0, 1.0))
-        except Exception:
-            return base_score
+

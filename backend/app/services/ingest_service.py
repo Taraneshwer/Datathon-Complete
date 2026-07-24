@@ -26,7 +26,7 @@ from app.models.fir import AuditAction, AuditTrail, Case, EvidenceItem
 from app.models.schemas import FIRIngestRequest, IngestResponse
 from app.repositories import AuditRepository, CaseRepository, EvidenceRepository
 from app.services.blockchain_service import BlockchainService
-from app.services.embedding_service import get_embedding_service
+from ai_service.embeddings.service import get_embedding_service
 from app.services.graph_service import GraphService
 from app.services.trust_service import TrustService
 
@@ -212,7 +212,8 @@ class IngestService:
     async def _write_qdrant(
         self, payload: FIRIngestRequest, case_id: str, point_id: str
     ) -> bool:
-        vector = await get_embedding_service().embed(payload.description)
+        embed_service = await get_embedding_service()
+        vector = await embed_service.embed(payload.description)
         await self._qdrant.upsert(
             collection_name=self._settings.qdrant_collection,
             points=[PointStruct(

@@ -15,7 +15,6 @@ import time
 
 from fastapi import APIRouter, HTTPException, status
 
-from app.assistant.rag_graph import run_rag
 from app.config import get_settings
 from app.models.schemas import ChatRequest, ChatResponse
 
@@ -59,6 +58,7 @@ async def chat(payload: ChatRequest) -> ChatResponse:
     )
 
     try:
+        from ai_service.llm.rag import run_rag
         response = await run_rag(payload)
     except ValueError as exc:
         # Prompt injection detected by firewall

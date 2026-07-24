@@ -21,7 +21,7 @@ from qdrant_client.models import FieldCondition, Filter, MatchValue, ScoredPoint
 
 from app.config import get_settings
 from app.models.schemas import PatternMatch, PatternMatchResponse
-from app.services.embedding_service import EmbeddingService
+from ai_service.embeddings.service import EmbeddingService
 
 logger = logging.getLogger(__name__)
 

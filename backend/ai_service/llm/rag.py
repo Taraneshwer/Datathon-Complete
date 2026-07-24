@@ -24,13 +24,13 @@ from typing import Any, TypedDict
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, StateGraph
 
-from app.assistant.prompt_templates import SYSTEM_PROMPT, build_rag_prompt
+from ai_service.llm.prompt_templates import SYSTEM_PROMPT, build_rag_prompt
 from app.config import get_settings
 from app.db.neo4j_client import get_driver
 from app.db.qdrant_client import get_client
 from app.intelligence.firewall import check_or_raise
 from app.models.schemas import ChatRequest, ChatResponse, SourceDocument
-from app.services.embedding_service import get_embedding_service
+from ai_service.embeddings.service import get_embedding_service
 from app.services.graph_service import GraphService
 
 logger = logging.getLogger(__name__)
@@ -83,7 +83,7 @@ async def _retrieve_vectors(state: RAGState) -> RAGState:
     settings = get_settings()
 
     try:
-        embedder = get_embedding_service()
+        embedder = await get_embedding_service()
         vector = await embedder.embed(query)
 
         qdrant = get_client()

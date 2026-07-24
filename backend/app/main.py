@@ -43,7 +43,6 @@ from app.routers import (
     ingest_router,
     websocket_router,
 )
-from app.services.embedding_service import init_embedding_service
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Logging
@@ -109,8 +108,7 @@ async def lifespan(app: FastAPI):
         else:
             raise
 
-    logger.info("[4/4] Loading embedding model (%s) …", settings.embedding_model)
-    await init_embedding_service()
+    logger.info("[4/4] AI models will be lazy-loaded on first request.")
 
     logger.info("✓ All services ready — accepting requests.")
 
@@ -157,8 +155,9 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_credentials=True,
         allow_origins=[
-        "https://datathon-complete-qzpldrhq.onslate.in"
-            ],
+            "https://datathon-complete-qzpldrhq.onslate.in",
+            "*"  # Optional: allow all origins temporarily during deployment debugging
+        ],
         allow_origin_regex=r"https?://(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|localhost|127\.0\.0\.1):(5173|3000|3001)$",
         allow_methods=["*"],
         allow_headers=["*"],
@@ -288,16 +287,21 @@ app = create_app()
 
 
 def run() -> None:
+    import os
     import uvicorn
+    from app.config import get_settings
+
     s = get_settings()
+
+    # Read the exact Catalyst port variable provided at runtime
+    port = int(os.environ.get("X_ZOHO_CATALYST_LISTEN_PORT", 8000))
+
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8000,
-        reload=s.debug,
-        log_level=s.log_level.lower(),
-        workers=1 if s.debug else 4,
-        access_log=True,
+        port=port,
+        reload=False,  # Set reload to False in production
+        workers=1,
     )
 
 

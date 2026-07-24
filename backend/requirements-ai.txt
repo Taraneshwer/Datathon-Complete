@@ -1,0 +1,31 @@
+# ── AI / Embeddings ─────────────────────────────────────────────────────────
+sentence-transformers==3.3.1
+torch==2.5.1
+numpy==1.26.4
+torchvision==0.21.0 
+torchaudio==2.6.0
+
+# ── Machine Learning ────────────────────────────────────────────────────────
+scikit-learn==1.5.2
+xgboost==2.1.3
+hdbscan==0.8.40
+geopandas==1.0.1
+h3==4.1.0
+shapely==2.0.6
+
+# ── Computer Vision ─────────────────────────────────────────────────────────
+opencv-python-headless==4.10.0.84
+easyocr==1.7.2
+
+# ── Audio / Speech ──────────────────────────────────────────────────────────
+faster-whisper==1.0.3
+tiktoken>=0.7.0
+ffmpeg-python==0.2.0
+
+# ── LangChain / LangGraph ───────────────────────────────────────────────────
+langchain==0.3.13
+langchain-core==0.3.28
+langchain-community==0.3.13
+langchain-openai==0.2.14
+langchain-nvidia-ai-endpoints==0.3.5
+langgraph==0.2.60

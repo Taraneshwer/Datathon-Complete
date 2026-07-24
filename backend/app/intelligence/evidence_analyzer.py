@@ -33,8 +33,6 @@ class EvidenceAnalyzer:
 
     def __init__(self) -> None:
         self._settings = get_settings()
-        self._ocr_reader: Any = None        # EasyOCR reader (lazy-loaded)
-        self._whisper_model: Any = None     # Whisper model (lazy-loaded)
 
     async def analyze(
         self,
@@ -88,8 +86,9 @@ class EvidenceAnalyzer:
     async def _analyze_image(
         self, evidence_id: str, ev_type: EvidenceType, file_path: str
     ) -> EvidenceAnalysisResult:
+        from ai_service.vision.pipeline import run_image_pipeline
         detected_objects, face_count = await asyncio.to_thread(
-            self._run_image_pipeline, file_path
+            run_image_pipeline, file_path
         )
         summary_parts = []
         if face_count > 0:
@@ -111,8 +110,9 @@ class EvidenceAnalyzer:
     async def _analyze_audio(
         self, evidence_id: str, ev_type: EvidenceType, file_path: str
     ) -> EvidenceAnalysisResult:
+        from ai_service.whisper.engine import run_whisper
         transcription = await asyncio.to_thread(
-            self._run_whisper, file_path
+            run_whisper, file_path, getattr(self._settings, "whisper_model_size", "base")
         )
         return EvidenceAnalysisResult(
             evidence_id=evidence_id,
@@ -128,8 +128,9 @@ class EvidenceAnalyzer:
         self, evidence_id: str, ev_type: EvidenceType, file_path: str
     ) -> EvidenceAnalysisResult:
         """Sample frames and run image pipeline on each."""
+        from ai_service.vision.pipeline import run_video_pipeline
         detected_objects, face_count = await asyncio.to_thread(
-            self._run_video_pipeline, file_path
+            run_video_pipeline, file_path
         )
         return EvidenceAnalysisResult(
             evidence_id=evidence_id,
@@ -148,7 +149,8 @@ class EvidenceAnalyzer:
     async def _analyze_document(
         self, evidence_id: str, ev_type: EvidenceType, file_path: str
     ) -> EvidenceAnalysisResult:
-        ocr_text = await asyncio.to_thread(self._run_ocr, file_path)
+        from ai_service.ocr.engine import run_ocr
+        ocr_text = await asyncio.to_thread(run_ocr, file_path, getattr(self._settings, "ocr_languages", ["en"]))
         return EvidenceAnalysisResult(
             evidence_id=evidence_id,
             evidence_type=ev_type,
@@ -157,100 +159,4 @@ class EvidenceAnalyzer:
             confidence=0.90 if ocr_text else 0.3,
         )
 
-    # ── Synchronous ML runners (thread pool) ──────────────────────────────────
 
-    def _run_image_pipeline(self, file_path: str) -> tuple[list[str], int]:
-        """OpenCV face detection + YOLO object detection."""
-        try:
-            import cv2
-            img = cv2.imread(file_path)
-            if img is None:
-                return [], 0
-
-            # Face detection using Haar cascade
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            face_cascade = cv2.CascadeClassifier(
-                cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-            )
-            faces = face_cascade.detectMultiScale(gray, 1.1, 4)
-            face_count = len(faces)
-
-            # YOLO object detection (stub — returns simulated labels in dev)
-            detected_objects = self._run_yolo_detection(file_path)
-
-            return detected_objects, face_count
-        except Exception as exc:
-            logger.warning("Image pipeline error: %s", exc)
-            return [], 0
-
-    def _run_yolo_detection(self, file_path: str) -> list[str]:
-        """
-        YOLOv11 object detection.
-        In production: load the YOLO model once at startup and run inference.
-        Stub returns empty list (no model file in dev).
-        """
-        # Production integration:
-        # from ultralytics import YOLO
-        # model = YOLO("yolo11n.pt")
-        # results = model(file_path, conf=self._settings.yolo_confidence_threshold)
-        # return list({name for r in results for name in r.names.values()})
-        logger.debug("YOLO detection stub — load model for production use.")
-        return []
-
-    def _run_whisper(self, file_path: str) -> str:
-        """OpenAI Whisper speech-to-text transcription."""
-        try:
-            from faster_whisper import WhisperModel
-            if self._whisper_model is None:
-                self._whisper_model = WhisperModel(
-                    self._settings.whisper_model_size,
-                    device="cpu", 
-                    compute_type="int8"
-                )
-            segments, info = self._whisper_model.transcribe(file_path)
-            result_text = " ".join([segment.text for segment in segments])
-            return result_text
-        except Exception as exc:
-            logger.warning("Whisper transcription failed: %s", exc)
-            return ""
-
-    def _run_ocr(self, file_path: str) -> str:
-        """EasyOCR multi-language text extraction."""
-        try:
-            import easyocr
-            if self._ocr_reader is None:
-                self._ocr_reader = easyocr.Reader(
-                    self._settings.ocr_languages, gpu=False
-                )
-            results = self._ocr_reader.readtext(file_path)
-            return " ".join(text for _, text, confidence in results if confidence > 0.4)
-        except Exception as exc:
-            logger.warning("OCR failed: %s", exc)
-            return ""
-
-    def _run_video_pipeline(self, file_path: str) -> tuple[list[str], int]:
-        """Sample every 30th frame and run image analysis."""
-        try:
-            import cv2
-            cap = cv2.VideoCapture(file_path)
-            all_objects: set[str] = set()
-            total_faces = 0
-            frame_idx = 0
-
-            while cap.isOpened():
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                if frame_idx % 30 == 0:
-                    tmp = f"/tmp/frame_{frame_idx}.jpg"
-                    cv2.imwrite(tmp, frame)
-                    objs, faces = self._run_image_pipeline(tmp)
-                    all_objects.update(objs)
-                    total_faces = max(total_faces, faces)
-                frame_idx += 1
-
-            cap.release()
-            return list(all_objects), total_faces
-        except Exception as exc:
-            logger.warning("Video pipeline failed: %s", exc)
-            return [], 0
