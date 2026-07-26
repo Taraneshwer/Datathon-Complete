@@ -1,0 +1,9 @@
+id,officerId,officerName,action,timestamp,verificationStatus,blockRef
+AL01,O-4491,DSP R. Kumar,Accessed case KA-2024-00847 evidence EV01,2026-07-26T15:51:31.084339+00:00,verified,0x8f2a9b1c
+AL02,O-2884,PSI M. Gowda,Queried Pattern P03 — Mysuru region filter,2026-07-26T15:51:31.084339+00:00,verified,0x4c9f2e3a
+AL03,SYS,SYSTEM,Automated anomaly scan — full state,2026-07-26T15:51:31.084339+00:00,verified,0x1a2b3c4d
+AL04,O-1032,PI K. Kumar,Updated case status KA-2024-00755 → Closed,2026-07-26T15:51:31.084339+00:00,verified,0x9d3f4a5b
+AL05,O-3391,PI S. Kamath,Accessed suspect S06 full profile,2026-07-26T15:51:31.084339+00:00,verified,0x6c1d2e3f
+AL06,O-7721,DSP T. Nair,Exported bias audit report — Q2 2024,2026-07-26T15:51:31.084339+00:00,verified,0x2f5a6b7c
+AL07,O-4491,DSP R. Kumar,Accessed Knowledge Graph — P01 filter,2026-07-26T15:51:31.084339+00:00,verified,0x3e4f5a6b
+AL08,O-9910,PSI A. Patil,Registered FIR-2024-1456 in system,2026-07-26T15:51:31.084339+00:00,verified,0x7b8c9d0e

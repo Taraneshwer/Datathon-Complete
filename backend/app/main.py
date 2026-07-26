@@ -31,6 +31,7 @@ from app.routers import (
     analytics_router,
     assistant_router,
     auth_router,
+    core_endpoints_router,
     evidence_router,
     ingest_router,
     websocket_router,
@@ -140,8 +141,12 @@ def create_app() -> FastAPI:
     app.include_router(evidence_router,  prefix=PREFIX)
     app.include_router(assistant_router, prefix=PREFIX)
     app.include_router(websocket_router, prefix=PREFIX)
+    app.include_router(core_endpoints_router, prefix=PREFIX)
+    app.include_router(core_endpoints_router, prefix="/api")
 
     @app.get("/health", tags=["Monitoring"])
+    @app.get("/api/healthz", tags=["Monitoring"])
+    @app.get("/api/v1/healthz", tags=["Monitoring"])
     async def health() -> dict[str, Any]:
         return {"status": "healthy", "platform": settings.app_name, "version": settings.app_version, "environment": settings.environment, "architecture": "100% Zoho Catalyst Native"}
 

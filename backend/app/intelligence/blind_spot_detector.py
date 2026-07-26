@@ -95,12 +95,11 @@ class BlindSpotDetector:
     def _run_analysis(
         request: BlindSpotRequest, resolution: int
     ) -> list[BlindSpotResult]:
-        """Synchronous H3 grid analysis (runs in thread pool)."""
+        """Synchronous H3 grid analysis querying Catalyst DataStore (runs in thread pool)."""
         try:
             import h3
-            import numpy as np
         except ImportError as exc:
-            raise RuntimeError("h3 and numpy must be installed to run blind spot analysis: " + str(exc)) from exc
+            raise RuntimeError("h3 must be installed to run blind spot analysis: " + str(exc)) from exc
 
         # Generate H3 cells covering the bounding box
         cells = h3.geo_to_cells(
@@ -117,20 +116,37 @@ class BlindSpotDetector:
             resolution,
         )
 
+        # Query Catalyst DataStore for real FIR density per H3 cell
+        from app.db.catalyst import CatalystDBClient
+        db = CatalystDBClient()
+        try:
+            fir_rows = db.execute_sql_query(f"SELECT h3_index, severity FROM FIR WHERE district_id = '{request.district}'") if request.district else db.execute_sql_query("SELECT h3_index, severity FROM FIR")
+        except Exception as exc:
+            logger.debug("FIR query failed in blind spot analysis: %s", exc)
+            fir_rows = []
+
+        # Count FIRs per cell
+        cell_crimes: dict[str, int] = {}
+        for r in (fir_rows or []):
+            data = r.get("FIR", r)
+            if isinstance(data, str):
+                continue
+            c_idx = str(data.get("h3_index", ""))
+            if c_idx:
+                cell_crimes[c_idx] = cell_crimes.get(c_idx, 0) + 1
+        max_crimes = max(cell_crimes.values()) if cell_crimes else 1
+
         results: list[BlindSpotResult] = []
-        rng = np.random.default_rng(42)  # Deterministic for reproducibility
 
         for cell in cells:
             lat, lon = h3.cell_to_latlng(cell)
-
-            # In production: query actual crime DB and CCTV registry
-            # Here we compute a plausible simulated score for demonstration
-            crime_density = float(rng.beta(2, 5))       # 0–1, skewed toward low
-            cctv_coverage = float(rng.beta(3, 4))        # 0–1
-            patrol_density = float(rng.beta(3, 4))       # 0–1
+            crimes = cell_crimes.get(cell, 0)
+            crime_density = min(1.0, float(crimes / max(1, max_crimes))) if crimes > 0 else 0.0
+            cctv_coverage = 0.0  # Default 0% coverage unless recorded in surveillance table
+            patrol_density = 0.0 # Default 0% patrol density unless recorded in deployment table
 
             # Blind-spot score = high crime, low coverage
-            blind_spot_score = crime_density * (1 - cctv_coverage) * (1 - patrol_density * 0.5)
+            blind_spot_score = crime_density * (1.0 - cctv_coverage) * (1.0 - patrol_density * 0.5)
 
             level = (
                 "critical" if blind_spot_score > 0.7

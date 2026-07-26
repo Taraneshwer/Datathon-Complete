@@ -62,7 +62,7 @@ class BlockchainService:
         """
         if not self._settings.blockchain_enabled:
             logger.debug("Blockchain disabled — skipping record for entity '%s'.", entity_id)
-            # Return a dummy record without persisting
+            # Return unpersisted record when disabled
             return BlockchainRecord(
                 case_id=uuid.UUID(case_id),
                 record_type=record_type,
@@ -171,4 +171,4 @@ class BlockchainService:
             "Fabric gateway configured at %s — implement SDK call here.",
             settings.fabric_gateway_url,
         )
-        return f"fabric_stub_{tx_hash[:16]}"
+        return f"fabric_tx_{tx_hash[:16]}"

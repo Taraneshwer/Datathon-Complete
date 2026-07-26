@@ -1,24 +1,23 @@
-
 import { PageHeader, SectionCard, StatusPill } from "@/components/ksp/PageHeader";
-import { CRIME_TREND, DISTRICTS } from "@/lib/ksp-data";
+import { useGetCrimeTrend, useListDistricts, useGetDashboardAnalytics } from "@/api-client";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart, Pie, Cell, Legend } from "recharts";
 
-const RES = [
-  { name: "Chargesheeted", value: 62 },
-  { name: "Investigating", value: 24 },
-  { name: "Pending",       value: 9 },
-  { name: "Closed",        value: 5 },
-];
 const COLORS = ["#0B1F3A", "#C9A227", "#A68B5B", "#94a3b8"];
 
-const AGING = [
-  { bucket: "<7 d",  cases: 210 },
-  { bucket: "7–30 d", cases: 340 },
-  { bucket: "30–90 d", cases: 180 },
-  { bucket: ">90 d", cases: 62 },
-];
-
 export function Analytics() {
+  const trendQuery = useGetCrimeTrend();
+  const districtsQuery = useListDistricts();
+  const dashboardQuery = useGetDashboardAnalytics();
+
+  const crimeTrend = (trendQuery.data as any[]) || [];
+  const rawDistricts = (districtsQuery.data as any[]) || [];
+  const districts = rawDistricts.map((d: any) => ({
+    ...d,
+    cases: d.crimeCount || d.cases || 0,
+  }));
+  const res = (dashboardQuery.data as any)?.resolutionMix || [];
+  const aging = (dashboardQuery.data as any)?.caseAging || [];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -33,7 +32,7 @@ export function Analytics() {
           <SectionCard title="Crime trends · 12 month">
             <div className="h-[300px]">
               <ResponsiveContainer>
-                <LineChart data={CRIME_TREND} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <LineChart data={crimeTrend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="2 4" stroke="#e5e7eb" />
                   <XAxis dataKey="m" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
@@ -53,8 +52,8 @@ export function Analytics() {
             <div className="h-[300px]">
               <ResponsiveContainer>
                 <PieChart>
-                  <Pie data={RES} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={2}>
-                    {RES.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+                  <Pie data={res} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={2}>
+                    {res.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
                   <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 12 }} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
@@ -68,7 +67,7 @@ export function Analytics() {
           <SectionCard title="District comparison">
             <div className="h-[280px]">
               <ResponsiveContainer>
-                <BarChart data={DISTRICTS} margin={{ top: 10, right: 8, left: -12, bottom: 0 }}>
+                <BarChart data={districts} margin={{ top: 10, right: 8, left: -12, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="2 4" stroke="#e5e7eb" />
                   <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} interval={0} angle={-15} textAnchor="end" height={50} />
                   <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
@@ -84,7 +83,7 @@ export function Analytics() {
           <SectionCard title="Case aging">
             <div className="h-[280px]">
               <ResponsiveContainer>
-                <BarChart data={AGING} margin={{ top: 10, right: 8, left: -12, bottom: 0 }}>
+                <BarChart data={aging} margin={{ top: 10, right: 8, left: -12, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="2 4" stroke="#e5e7eb" />
                   <XAxis dataKey="bucket" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />

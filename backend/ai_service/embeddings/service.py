@@ -49,11 +49,10 @@ class EmbeddingService:
                 return res["embedding"]
             if isinstance(res, list):
                 return res
-            # Fallback embedding vector if offline or dev stub
-            return [0.015] * 1024
+            return []
         except Exception as e:
-            logger.warning(f"Catalyst QuickML embedding call failed (using fallback stub vector): {e}")
-            return [0.015] * 1024
+            logger.warning(f"Catalyst QuickML embedding call failed: {e}")
+            return []
 
     async def embed_batch(self, texts: List[str]) -> List[List[float]]:
         if not texts:

@@ -1,8 +1,20 @@
 import { PageTransition, StaggerItem } from '../components/Motion';
 import { Bot, Terminal, Send, ShieldCheck } from 'lucide-react';
 import { CaseIdLink } from '../components/CaseIdLink';
+import { useGetCase, useGetSuspect } from '@/api-client';
 
 export function Agent() {
+  const caseQuery = useGetCase('KA-2024-00847');
+  const suspectQuery = useGetSuspect('S01');
+
+  const caseData = (caseQuery.data as any) || {};
+  const suspectData = (suspectQuery.data as any) || {};
+
+  const moSummary = caseData.summary || "Late-night forced entry via rear windows targeting portable electronics. The alarm system was bypassed using techniques consistent with Pattern P01.";
+  const suspectName = suspectData.name ? `${suspectData.name} (${suspectData.id})` : "Arun Kumar (S01)";
+  const suspectRisk = suspectData.riskScore || 85;
+  const suspectNotes = suspectData.moSummary || "Known associate of Syed Ali. Last seen: 2024-06-05 in Indiranagar.";
+
   return (
     <PageTransition className="max-w-4xl mx-auto h-[calc(100vh-140px)] flex flex-col">
       <header className="mb-6 shrink-0">
@@ -54,19 +66,19 @@ export function Agent() {
                   </span>
                 </div>
                 <p className="text-[var(--ink-primary)] leading-relaxed mb-4">
-                  The MO for <CaseIdLink id="KA-2024-00847" /> involves late-night forced entry via rear windows targeting portable electronics. The alarm system was bypassed using techniques consistent with <strong className="font-mono text-[var(--accent-focus)] font-normal text-[12px]">Pattern P01</strong>.
+                  {moSummary}
                 </p>
                 <p className="text-[var(--ink-primary)] leading-relaxed mb-4">
                   I scanned adjacent districts (Mysuru, Tumakuru) for the past 6 months. I found 1 high-confidence match:
                 </p>
                 <div className="p-4 border border-[var(--border-hairline)] rounded-[6px] bg-[var(--bg-canvas)] space-y-2">
                   <div className="flex justify-between items-center border-b border-[var(--border-hairline)] pb-2 mb-2">
-                    <span className="font-medium">Suspect: Arun Kumar (S01)</span>
-                    <span className="text-[11px] font-mono text-[var(--accent-critical)]">Risk Score: 85</span>
+                    <span className="font-medium">Suspect: {suspectName}</span>
+                    <span className="text-[11px] font-mono text-[var(--accent-critical)]">Risk Score: {suspectRisk}</span>
                   </div>
                   <div className="text-[13px] text-[var(--ink-secondary)]">
-                    Known associate of Syed Ali. Last seen: 2024-06-05 in Indiranagar.
-                    Linked to <CaseIdLink id="KA-2024-00812" /> with identical entry method.
+                    {suspectNotes}
+                    <br />Linked to <CaseIdLink id="KA-2024-00812" /> with identical entry method.
                   </div>
                 </div>
               </div>

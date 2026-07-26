@@ -1,9 +1,11 @@
-
 import { PageHeader, SectionCard, StatusPill } from "@/components/ksp/PageHeader";
-import { CASES } from "@/lib/ksp-data";
+import { useGetInvestigationsCases } from "@/api-client";
 import { Filter, Plus, Search, Briefcase } from "lucide-react";
 
 export function Investigations() {
+  const casesQuery = useGetInvestigationsCases();
+  const cases = (casesQuery.data as any[]) || [];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -32,7 +34,7 @@ export function Investigations() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {CASES.map((c) => (
+          {cases.map((c: any) => (
             <article key={c.id} className="govt-card p-4 hover:border-gold/60 transition-colors">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">

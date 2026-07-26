@@ -160,5 +160,6 @@ class IngestService:
                 }
             )
         except Exception as e:
-            logger.warning(f"Failed to index vector in QuickML Knowledge Base (fallback in dev): {e}")
+            logger.warning(f"Failed to index vector in QuickML Knowledge Base: {e}")
+            return False
         return True

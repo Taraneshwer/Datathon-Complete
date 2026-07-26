@@ -1,11 +1,13 @@
-
 import { PageHeader, SectionCard, StatusPill } from "@/components/ksp/PageHeader";
-import { EVIDENCE_ITEMS } from "@/lib/ksp-data";
+import { useGetEvidenceCenterItems } from "@/api-client";
 import { Upload, Image as ImageIcon, Video, FileText, Music, ScanSearch, Fingerprint, Sparkles } from "lucide-react";
 
 const TYPE_ICON: Record<string, any> = { Video: Video, Image: ImageIcon, Audio: Music, Document: FileText };
 
 export function EvidenceHub() {
+  const itemsQuery = useGetEvidenceCenterItems();
+  const evidenceItems = (itemsQuery.data as any[]) || [];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -27,7 +29,7 @@ export function EvidenceHub() {
                 </tr>
               </thead>
               <tbody>
-                {EVIDENCE_ITEMS.map((e) => {
+                {evidenceItems.map((e: any) => {
                   const Icon = TYPE_ICON[e.type] ?? FileText;
                   return (
                     <tr key={e.id} className="border-b border-border/60 hover:bg-muted/40">

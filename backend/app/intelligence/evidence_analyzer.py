@@ -38,7 +38,7 @@ class EvidenceAnalyzer:
         self,
         evidence_id: str,
         evidence_type: EvidenceType,
-        file_path: str,
+        file_data: Any,
     ) -> EvidenceAnalysisResult:
         """
         Dispatch evidence to the correct AI analysis pipeline.
@@ -46,7 +46,7 @@ class EvidenceAnalyzer:
         Args:
             evidence_id:    DB ID of the EvidenceItem.
             evidence_type:  Enum type determining the pipeline.
-            file_path:      Absolute path to the uploaded file.
+            file_data:      In-memory file bytes or reference.
 
         Returns:
             EvidenceAnalysisResult with all extracted intelligence.
@@ -61,13 +61,13 @@ class EvidenceAnalyzer:
 
         try:
             if evidence_type in (EvidenceType.IMAGE, EvidenceType.SURVEILLANCE):
-                result = await self._analyze_image(evidence_id, evidence_type, file_path)
+                result = await self._analyze_image(evidence_id, evidence_type, file_data)
             elif evidence_type == EvidenceType.AUDIO:
-                result = await self._analyze_audio(evidence_id, evidence_type, file_path)
+                result = await self._analyze_audio(evidence_id, evidence_type, file_data)
             elif evidence_type == EvidenceType.VIDEO:
-                result = await self._analyze_video(evidence_id, evidence_type, file_path)
+                result = await self._analyze_video(evidence_id, evidence_type, file_data)
             elif evidence_type in (EvidenceType.DOCUMENT, EvidenceType.PHYSICAL):
-                result = await self._analyze_document(evidence_id, evidence_type, file_path)
+                result = await self._analyze_document(evidence_id, evidence_type, file_data)
             else:
                 result.summary = "No automated analysis available for this evidence type."
 
@@ -84,11 +84,11 @@ class EvidenceAnalyzer:
     # ── Image Analysis ────────────────────────────────────────────────────────
 
     async def _analyze_image(
-        self, evidence_id: str, ev_type: EvidenceType, file_path: str
+        self, evidence_id: str, ev_type: EvidenceType, file_data: Any
     ) -> EvidenceAnalysisResult:
         from ai_service.vision.pipeline import run_image_pipeline
         detected_objects, face_count = await asyncio.to_thread(
-            run_image_pipeline, file_path
+            run_image_pipeline, file_data
         )
         summary_parts = []
         if face_count > 0:
@@ -108,11 +108,11 @@ class EvidenceAnalyzer:
     # ── Audio Analysis ────────────────────────────────────────────────────────
 
     async def _analyze_audio(
-        self, evidence_id: str, ev_type: EvidenceType, file_path: str
+        self, evidence_id: str, ev_type: EvidenceType, file_data: Any
     ) -> EvidenceAnalysisResult:
         from ai_service.whisper.engine import run_whisper
         transcription = await asyncio.to_thread(
-            run_whisper, file_path, getattr(self._settings, "whisper_model_size", "base")
+            run_whisper, file_data, getattr(self._settings, "whisper_model_size", "base")
         )
         return EvidenceAnalysisResult(
             evidence_id=evidence_id,
@@ -125,12 +125,12 @@ class EvidenceAnalyzer:
     # ── Video Analysis ────────────────────────────────────────────────────────
 
     async def _analyze_video(
-        self, evidence_id: str, ev_type: EvidenceType, file_path: str
+        self, evidence_id: str, ev_type: EvidenceType, file_data: Any
     ) -> EvidenceAnalysisResult:
-        """Sample frames and run image pipeline on each."""
+        """Analyze video frames using image pipeline."""
         from ai_service.vision.pipeline import run_video_pipeline
         detected_objects, face_count = await asyncio.to_thread(
-            run_video_pipeline, file_path
+            run_video_pipeline, file_data
         )
         return EvidenceAnalysisResult(
             evidence_id=evidence_id,
@@ -147,10 +147,10 @@ class EvidenceAnalyzer:
     # ── Document / OCR Analysis ───────────────────────────────────────────────
 
     async def _analyze_document(
-        self, evidence_id: str, ev_type: EvidenceType, file_path: str
+        self, evidence_id: str, ev_type: EvidenceType, file_data: Any
     ) -> EvidenceAnalysisResult:
         from ai_service.ocr.engine import run_ocr
-        ocr_text = await asyncio.to_thread(run_ocr, file_path, getattr(self._settings, "ocr_languages", ["en"]))
+        ocr_text = await asyncio.to_thread(run_ocr, file_data, getattr(self._settings, "ocr_languages", ["en"]))
         return EvidenceAnalysisResult(
             evidence_id=evidence_id,
             evidence_type=ev_type,

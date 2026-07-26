@@ -27,7 +27,7 @@
     "types": ["node", "vite/client"],
     "paths": {
       "@/*": ["./src/*"],
-      "@workspace/api-client-react": ["./src/lib/api-client-stub.ts"]
+      "@workspace/api-client-react": ["./src/api-client/index.ts"]
     }
   },
   "include": ["src/**/*"],

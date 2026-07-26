@@ -1,0 +1,9 @@
+id,name,lat,lng,crimeCount,riskLevel,patrolCoverage,population,isBlindSpot,blindSpotReason
+D01,Bengaluru Urban,12.9716,77.5946,412,5,0.85,13608220,,
+D02,Mysuru,12.2958,76.6394,185,3,0.65,3001127,,
+D03,Hubballi-Dharwad,15.3647,75.124,201,4,0.7,1847023,True,Low reported crime vs high socio-economic risk indicators (unemployment spike +18%).
+D04,Mangaluru,12.9141,74.856,156,3,0.75,2089649,,
+D05,Kalaburagi,17.3297,76.8343,220,4,0.55,2566326,True,Patrol coverage below 60% threshold in 3 sub-divisions.
+D06,Belagavi,15.8497,74.4977,110,2,0.6,4779661,,
+D07,Shivamogga,13.9299,75.5681,95,2,0.5,1752753,,
+D08,Tumakuru,13.3392,77.1016,88,2,0.65,2678980,,

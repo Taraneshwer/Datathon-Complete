@@ -62,30 +62,19 @@ async def analyze_evidence(
             detail=f"File exceeds maximum size of {settings.evidence_max_file_size_mb} MB.",
         )
 
-    # Save to temp path for CV processing
-    import os
-    import tempfile
-    suffix = os.path.splitext(file.filename or "file")[1] or ".bin"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(content)
-        tmp_path = tmp.name
+    # Pass in-memory file content directly to Zia AI analyzer (Zero local disk writing)
+    result = await _analyzer.analyze(
+        evidence_id=evidence_id,
+        evidence_type=evidence_type,
+        file_data=content,
+    )
 
-    try:
-        result = await _analyzer.analyze(
-            evidence_id=evidence_id,
-            evidence_type=evidence_type,
-            file_path=tmp_path,
-        )
-
-        # Persist AI analysis back to EvidenceItem
-        ev = await evidence_repo.get(evidence_id)
-        if ev:
-            ev.ai_analysis = result.model_dump(exclude={"evidence_id", "evidence_type"})
-            ev.status = EvidenceStatus.ANALYZED
-            await evidence_repo.update(ev)
-
-    finally:
-        os.unlink(tmp_path)
+    # Persist AI analysis back to EvidenceItem
+    ev = await evidence_repo.get(evidence_id)
+    if ev:
+        ev.ai_analysis = result.model_dump(exclude={"evidence_id", "evidence_type"})
+        ev.status = EvidenceStatus.ANALYZED
+        await evidence_repo.update(ev)
 
     return result
 

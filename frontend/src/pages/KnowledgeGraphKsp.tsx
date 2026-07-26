@@ -1,45 +1,16 @@
-
 import { PageHeader, SectionCard, StatusPill } from "@/components/ksp/PageHeader";
 import ReactFlow, { Background, Controls, MiniMap, type Node, type Edge } from "reactflow";
 import "reactflow/dist/style.css";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { User, Car, Phone, Landmark, Package, DollarSign, MapPin } from "lucide-react";
-
-const NODES: Node[] = [
-  { id: "victim",   position: { x: 60, y: 220 },  data: { label: "🧑 Victim · R. Sharma" },     style: nodeStyle("#0B1F3A") },
-  { id: "suspect1", position: { x: 340, y: 80 },  data: { label: "🕶 Suspect A-441" },           style: nodeStyle("#c0392b") },
-  { id: "suspect2", position: { x: 340, y: 360 }, data: { label: "🕶 Suspect A-317" },           style: nodeStyle("#c0392b") },
-  { id: "vehicle",  position: { x: 620, y: 60 },  data: { label: "🏍 KA-05-MH-1234" },          style: nodeStyle("#C9A227") },
-  { id: "phone",    position: { x: 620, y: 200 }, data: { label: "📞 +91 98••••2211" },         style: nodeStyle("#C9A227") },
-  { id: "weapon",   position: { x: 620, y: 340 }, data: { label: "🔪 Weapon · Machete" },        style: nodeStyle("#A68B5B") },
-  { id: "acct",     position: { x: 900, y: 140 }, data: { label: "🏦 Account 47829" },           style: nodeStyle("#1e40af") },
-  { id: "loc",      position: { x: 900, y: 300 }, data: { label: "📍 HSR Layout" },              style: nodeStyle("#1e40af") },
-  { id: "org",      position: { x: 1140, y: 220 },data: { label: "🏛 Ring · East BLR" },         style: nodeStyle("#0B1F3A") },
-];
-
-const EDGES: Edge[] = [
-  { id: "e1", source: "victim", target: "suspect1", label: "assaulted by", animated: true },
-  { id: "e2", source: "victim", target: "suspect2", label: "identified" },
-  { id: "e3", source: "suspect1", target: "vehicle", label: "used" },
-  { id: "e4", source: "suspect1", target: "phone", label: "owns" },
-  { id: "e5", source: "suspect2", target: "weapon", label: "possessed" },
-  { id: "e6", source: "phone", target: "acct", label: "linked" },
-  { id: "e7", source: "vehicle", target: "loc", label: "seen at", animated: true },
-  { id: "e8", source: "suspect1", target: "org", label: "member of" },
-  { id: "e9", source: "suspect2", target: "org", label: "member of" },
-];
-
-function nodeStyle(bg: string) {
-  return {
-    background: bg, color: "white", border: "none", borderRadius: 8, padding: "8px 12px",
-    fontSize: 12, fontWeight: 600, boxShadow: "0 4px 12px rgba(11,31,58,0.15)",
-  } as const;
-}
+import { useGetKspGraph } from "@/api-client";
 
 export function KnowledgeGraphKsp() {
   const [selected, setSelected] = useState<string>("suspect1");
-  const nodes = useMemo(() => NODES, []);
-  const edges = useMemo(() => EDGES, []);
+  const graphQuery = useGetKspGraph();
+  
+  const nodes = ((graphQuery.data as any)?.nodes || []) as Node[];
+  const edges = ((graphQuery.data as any)?.edges || []) as Edge[];
 
   return (
     <div className="space-y-6">
@@ -47,7 +18,7 @@ export function KnowledgeGraphKsp() {
         eyebrow="Link Analysis"
         title="Investigative Knowledge Graph"
         description="Entities, relationships and financial flows across cases — click any node for context."
-        actions={<StatusPill tone="info">9 entities · 9 edges</StatusPill>}
+        actions={<StatusPill tone="info">{nodes.length} entities · {edges.length} edges</StatusPill>}
       />
 
       <div className="grid grid-cols-12 gap-4">

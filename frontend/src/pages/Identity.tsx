@@ -1,15 +1,11 @@
-
 import { PageHeader, SectionCard, StatusPill } from "@/components/ksp/PageHeader";
 import { Fingerprint, QrCode, ShieldCheck, User } from "lucide-react";
-
-const CREDS = [
-  { type: "Officer DID",  id: "did:ksp:0xA1..B2", holder: "IPS Arun Rao",    status: "Verified", tone: "success" as const },
-  { type: "Citizen DID",  id: "did:ksp:0xC3..D4", holder: "R. Sharma",       status: "Verified", tone: "success" as const },
-  { type: "Witness DID",  id: "did:ksp:0xE5..F6", holder: "Witness W-14",    status: "Pending",  tone: "warning" as const },
-  { type: "Evidence DID", id: "did:ksp:0x77..99", holder: "EV-9812",         status: "Verified", tone: "success" as const },
-];
+import { useGetIdentityCredentials } from "@/api-client";
 
 export function Identity() {
+  const credsQuery = useGetIdentityCredentials();
+  const credentials = (credsQuery.data as any[]) || [];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -23,7 +19,7 @@ export function Identity() {
         <div className="col-span-12 lg:col-span-8">
           <SectionCard title="Credentials">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {CREDS.map((c) => (
+              {credentials.map((c: any) => (
                 <div key={c.id} className="govt-card p-4 topline">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--khaki)]">{c.type}</span>

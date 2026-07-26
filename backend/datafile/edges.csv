@@ -1,0 +1,13 @@
+id,source,target,label,timeIndex,strength
+E01,KA-2024-00847,S01,Prime Suspect,1,0.9
+E02,KA-2024-00847,S02,Suspect,1,0.6
+E03,KA-2024-00812,S01,Suspect,0,0.7
+E04,KA-2024-00847,V01,Victim,1,
+E05,KA-2024-00847,L01,Scene,1,
+E06,KA-2024-00812,L02,Scene,0,
+E07,S01,S02,Known Associate,0,0.8
+E08,KA-2024-00847,KA-2024-00812,Linked Case,1,
+E09,KA-2024-00963,S04,Prime Suspect,2,0.8
+E10,KA-2024-00963,S05,Suspect,2,0.6
+E11,KA-2024-00963,L03,Scene,2,
+E12,S04,S05,Co-accused,2,0.7

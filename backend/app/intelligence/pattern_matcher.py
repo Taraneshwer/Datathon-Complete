@@ -59,13 +59,8 @@ class PatternMatcher:
                         description_snippet=str(payload.get("text", payload.get("description", "Similar crime pattern detected by Catalyst QuickML.")))[:200]
                     ))
         except Exception as e:
-            logger.warning(f"Catalyst QuickML pattern search failed (using fallback in dev): {e}")
-            matches = [PatternMatch(
-                case_id="CASE-CATALYST-01",
-                fir_number="FIR-CATALYST-001",
-                similarity_score=0.91,
-                description_snippet="Coordinated financial fraud and cyber intrusion pattern identified via Catalyst analytics."
-            )]
+            logger.warning(f"Catalyst QuickML pattern search failed: {e}")
+            matches = []
 
         return PatternMatchResponse(
             query_text=text[:256],

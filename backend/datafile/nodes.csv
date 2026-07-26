@@ -1,0 +1,12 @@
+id,type,label,x,y,timeIndex,linkedCaseIds,riskScore,moSummary
+KA-2024-00847,case,KA-2024-00847,300,200,1,"[""KA-2024-00812""]",,
+KA-2024-00812,case,KA-2024-00812,480,160,0,,,
+KA-2024-00963,case,KA-2024-00963,150,80,2,,,
+S01,suspect,Arun Kumar,360,330,1,"[""KA-2024-00847"", ""KA-2024-00812""]",85,"Targets electronics, 2–4 AM, glass cutters."
+S02,suspect,Syed Ali,180,300,1,"[""KA-2024-00847""]",60,
+S04,suspect,M. Faizal,100,180,2,"[""KA-2024-00963""]",72,
+S05,suspect,Ravi Naik,60,80,2,"[""KA-2024-00963""]",65,
+V01,victim,A. N.,250,100,1,"[""KA-2024-00847""]",,
+L01,location,Indiranagar,180,230,1,,,
+L02,location,Koramangala,480,280,0,,,
+L03,location,Yeshwanthpur,60,260,2,,,

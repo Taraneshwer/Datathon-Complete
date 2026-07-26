@@ -1,0 +1,7 @@
+id,caseId,timestamp,title,description,type,_caseId,officerId,evidenceIds
+T01,KA-2024-00847,2024-05-12T02:15:00Z,Incident Occurred,Estimated time of break-in based on alarm logs and neighbour statement.,incident,KA-2024-00847,,
+T02,KA-2024-00847,2024-05-12T08:30:00Z,FIR Registered,Homeowner reported incident. FIR-2024-1089 registered at Indiranagar PS. Patrol unit 12-A dispatched.,update,KA-2024-00847,PI R. Sharma,
+T03,KA-2024-00847,2024-05-12T10:00:00Z,Forensics Collected,FSL team lifted 3 latent prints from rear window sill. Scene photographed.,evidence_collected,KA-2024-00847,,"[""EV01""]"
+T04,KA-2024-00847,2024-05-13T14:20:00Z,CCTV Footage Secured,Video from adjacent building shows silver sedan at 02:18. Partial plate: KA-03 M*.,evidence_collected,KA-2024-00847,,"[""EV02""]"
+T05,KA-2024-00847,2024-05-15T09:00:00Z,AFIS Match — S01,Fingerprint EV01 matched to Arun Kumar (S01) in AFIS database. Look-out circular issued.,update,KA-2024-00847,PI R. Sharma,
+T06,KA-2024-00847,2024-05-22T16:45:00Z,Linked to KA-2024-00812,MO analysis by Pattern Engine links this case to prior Koramangala burglary. Cases consolidated.,update,KA-2024-00847,,

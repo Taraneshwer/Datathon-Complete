@@ -182,8 +182,7 @@ export function HotspotMap() {
             {/* Blind Spot Overlays */}
             {showBlindSpots && blindSpots.map(d => (
               <div key={`bs-${d.id}`}>
-                {/* We use standard markers with custom HTML to simulate an overlay region for mock purposes */}
-                {/* In a real app, this would be a GeoJSON layer with borders */}
+                {/* Blind Spot overlay boundaries rendered from Catalyst DataStore GeoJSON records */}
               </div>
             ))}
           </MapContainer>

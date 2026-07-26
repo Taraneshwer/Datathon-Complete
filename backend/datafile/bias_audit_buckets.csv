@@ -1,0 +1,5 @@
+label,closureRate,resourceAllocation,caseCount,flagged
+Metro High-Income,0.72,0.85,450,
+Metro Low-Income,0.68,0.7,520,
+Tier-2 Urban,0.65,0.6,380,True
+Rural/Coastal,0.58,0.5,210,

@@ -1,0 +1,5 @@
+id,caseId,type,label,timestamp,confidence,verified,notes,_caseId
+EV01,KA-2024-00847,forensic,Latent Fingerprint — Rear Window Sill,2024-05-12T10:00:00Z,0.95,True,Matches S01 (Arun Kumar) in AFIS. Chain of custody ref: FSL/BLR/2024/0512.,KA-2024-00847
+EV02,KA-2024-00847,video,Exterior CCTV — Adjacent Building,2024-05-13T14:20:00Z,0.8,True,"Silver sedan, partial plate KA-03 M*. Exits frame 02:21.",KA-2024-00847
+EV03,KA-2024-00847,image,Scene Photographs (18 frames),2024-05-12T11:00:00Z,0.99,True,Photographed by Beat 12-A PC. Exhibits 001–018.,KA-2024-00847
+EV04,KA-2024-00847,document,Victim Statement — A. N.,2024-05-12T09:30:00Z,0.9,True,Recorded under Sec 161 CrPC. Statement signed.,KA-2024-00847

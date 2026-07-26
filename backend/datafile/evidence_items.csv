@@ -1,0 +1,6 @@
+id,type,case,size,chain,tone,hash
+EV-9812,Video,KA-2886,412 MB,Verified,success,0x8f9a…c421
+EV-9811,Image,KA-2891,3.2 MB,Verified,success,0x1cbe…7734
+EV-9810,Audio,KA-2890,18 MB,Pending,warning,0xa22e…9910
+EV-9809,Document,KA-2889,1.1 MB,Verified,success,0x5d31…441a
+EV-9808,Video,KA-2888,820 MB,Anomaly,critical,0xffea…0012

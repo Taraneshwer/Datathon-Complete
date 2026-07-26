@@ -1,7 +1,7 @@
 import hashlib
+import io
 import logging
 import os
-import tempfile
 import uuid
 from datetime import datetime, timedelta
 from typing import Any
@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 class StorageService:
     """
-    Service for interacting with Zoho Catalyst Stratus Object Storage.
-    Handles upload, download, delete, and signed URL generation.
+    Service for interacting with Zoho Catalyst Stratus Object Storage / File Store.
+    Handles upload, download, delete, and signed URL generation without local disk access.
     """
 
     def __init__(self, db_client: CatalystDBClient):
@@ -37,8 +37,8 @@ class StorageService:
 
     async def upload_evidence(self, file_content: bytes, original_filename: str, case_id: str) -> dict:
         """
-        Uploads a file to Stratus Object Storage.
-        Calculates SHA256, generates UUID filename, and returns metadata.
+        Uploads a file to Catalyst Stratus Object Storage / File Store.
+        Calculates SHA256, generates UUID filename, and returns metadata using in-memory streaming.
         """
         # Calculate SHA256
         sha256_hash = hashlib.sha256(file_content).hexdigest()
@@ -47,21 +47,22 @@ class StorageService:
         ext = os.path.splitext(original_filename)[1]
         object_name = f"evidence/{case_id}/{uuid.uuid4().hex}{ext}"
 
-        # Write to temp file for Catalyst SDK upload
-        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
-            tmp.write(file_content)
-            tmp_path = tmp.name
+        # In-memory buffer for Catalyst SDK upload (Zero local disk writing)
+        file_buffer = io.BytesIO(file_content)
 
         try:
             bucket = self._get_bucket()
             
             upload_result = None
             if hasattr(bucket, "upload_file"):
-                upload_result = bucket.upload_file(tmp_path)
+                try:
+                    upload_result = bucket.upload_file(file_obj=file_buffer, file_name=original_filename)
+                except TypeError:
+                    upload_result = bucket.upload_file(file_buffer)
             elif hasattr(bucket, "upload"):
-                upload_result = bucket.upload(tmp_path)
+                upload_result = bucket.upload(file_buffer)
             else:
-                logger.warning("Bucket object does not have upload_file. Using fallback.")
+                logger.error("Bucket object does not support upload_file.")
                 raise NotImplementedError("Catalyst SDK bucket upload method not recognized.")
             
             # The Catalyst SDK might return a dict or an object with details
@@ -88,9 +89,6 @@ class StorageService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to upload evidence to storage: {str(e)}"
             )
-        finally:
-            if os.path.exists(tmp_path):
-                os.unlink(tmp_path)
 
     async def delete_evidence(self, identifier: str) -> bool:
         """

@@ -1,10 +1,12 @@
-
 import { PageHeader, SectionCard, StatusPill } from "@/components/ksp/PageHeader";
 import { OpenStreetMap } from "@/components/ksp/OpenStreetMap";
-import { NATIONAL_ALERTS } from "@/lib/ksp-data";
+import { useGetNationalAlerts } from "@/api-client";
 import { Radio, ArrowRight } from "lucide-react";
 
 export function NationalAlerts() {
+  const alertsQuery = useGetNationalAlerts();
+  const nationalAlerts = (alertsQuery.data as any[]) || [];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -16,7 +18,7 @@ export function NationalAlerts() {
 
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-4 space-y-3">
-          {NATIONAL_ALERTS.map((a) => (
+          {nationalAlerts.map((a: any) => (
             <div key={a.id} className="govt-card p-4 hover:border-gold/60 transition-colors">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="font-mono text-[11px] text-muted-foreground">{a.id}</span>
@@ -40,7 +42,7 @@ export function NationalAlerts() {
           <OpenStreetMap
             center={{ lat: 14.5, lng: 76 }}
             zoom={7}
-            markers={NATIONAL_ALERTS.map(a => ({ lat: a.lat, lng: a.lng, tone: a.tone as any, label: a.title }))}
+            markers={nationalAlerts.map((a: any) => ({ lat: a.lat, lng: a.lng, tone: a.tone as any, label: a.title }))}
             height={560}
           />
         </div>

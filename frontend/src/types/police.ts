@@ -1,7 +1,6 @@
 /**
  * Police-domain extensions on top of the generated API types.
- * These fields are present in the enriched mock data and any real backend
- * that returns them in the same payload shape.
+ * These fields are returned by the Zoho Catalyst DataStore backend.
  */
 import type { CaseDetail, Suspect } from '@/api-client';
 

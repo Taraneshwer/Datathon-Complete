@@ -1,0 +1,11 @@
+id,lat,lng,intensity,weight,districtId,crimeType,timeOfDay,isAnomaly,stationName,label,tone
+H01,12.9716,77.5946,0.85,3,D01,Burglary,2,True,Indiranagar PS,MG Road · Chain snatching,critical
+H02,12.9352,77.6245,0.65,2,D01,Fraud,14,False,Koramangala PS,Koramangala · Cyber fraud cluster,warning
+H03,13.0298,77.571,0.7,2,D01,Burglary,3,False,Malleshwaram PS,Malleshwaram · Burglary,warning
+H04,12.9081,77.6476,0.9,3,D01,Vehicle Theft,22,True,HSR Layout PS,HSR Layout · Vehicle theft,critical
+H05,12.9784,77.6408,0.3,1,D01,Theft,18,False,Indiranagar PS,Indiranagar · Public nuisance,info
+H06,13.0067,77.567,0.6,2,D01,Assault,23,False,Rajajinagar PS,Rajajinagar · Assault,warning
+H07,12.925,77.5938,0.55,2,D01,Narcotics,21,False,Jayanagar PS,Jayanagar · Narcotics tip,warning
+H08,12.9915,77.7383,0.95,3,D01,Fraud,11,True,Whitefield PS,Whitefield · Cybercrime hub,critical
+H09,12.2958,76.6394,0.5,2,D02,Burglary,4,False,Mysuru PS,Mysuru Center · Property offence,info
+H10,15.3647,75.124,0.75,2,D03,Theft,1,True,Hubballi PS,Hubballi · Chain of custody alert,warning

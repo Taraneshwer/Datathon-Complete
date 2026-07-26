@@ -13,7 +13,7 @@ export function TopBar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const { data: health, isError, isFetching, refetch } = useHealthCheck({ query: { retry: false, queryKey: ['health-check'] } });
   const { data: ledger } = useGetLedgerStatus();
   
-  const ledgerData = (ledger && (ledger as any).state) ? ledger : { state: '' } as any; // Fallback when backend not ready
+  const ledgerData = (ledger && (ledger as any).state) ? ledger : { state: '' } as any; // Default empty state when ledger is uninitialized
 
   useEffect(() => {
     const timer = setInterval(() => {

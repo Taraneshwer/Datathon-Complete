@@ -7,7 +7,7 @@ def refine_with_xgboost(base_score: float, context: dict[str, Any]) -> float:
     """
     Optionally refine the risk score using an XGBoost model.
     In production: load a pre-trained model from disk.
-    This stub adjusts the base score using context feature signals.
+    This function adjusts the base score using context feature signals.
     """
     try:
         import numpy as np

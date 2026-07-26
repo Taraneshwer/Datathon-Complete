@@ -63,10 +63,9 @@ async def run_rag(request: ChatRequest) -> ChatResponse:
             sources.append(SourceDocument(case_id=case_id, fir_number=fir_num, similarity_score=round(score, 4), excerpt=desc))
             vector_sources_dict.append({"case_id": case_id, "fir_number": fir_num, "description": desc, "score": round(score, 4)})
     except Exception as e:
-        logger.warning(f"Catalyst QuickML Knowledge Base retrieval failed (fallback to mock RAG hit in dev): {e}")
-        # Graceful fallback in development environment
-        sources = [SourceDocument(case_id="CASE-CATALYST-01", fir_number="FIR-CATALYST-001", similarity_score=0.92, excerpt="FIR regarding suspicious financial transfers and criminal syndicate activity analyzed natively in Zoho Catalyst.")]
-        vector_sources_dict = [{"case_id": "CASE-CATALYST-01", "fir_number": "FIR-CATALYST-001", "description": sources[0].excerpt, "score": 0.92}]
+        logger.warning(f"Catalyst QuickML Knowledge Base retrieval failed: {e}")
+        sources = []
+        vector_sources_dict = []
 
     # 3. Graph context retrieval via Data Store Graph Engine
     graph_paths: List[str] = []
@@ -76,7 +75,7 @@ async def run_rag(request: ChatRequest) -> ChatResponse:
         graph_paths = await graph_service.get_case_context(target_fir, depth=2)
     except Exception as e:
         logger.warning(f"Graph context retrieval failed: {e}")
-        graph_paths = ["FIR-CATALYST-001 --[ASSOCIATED_WITH]--> Suspect Syndicate Alpha (Catalyst Data Store)"]
+        graph_paths = []
 
     # 4. Prompt Assembly & QuickML LLM Inference
     assembled_prompt = build_rag_prompt(user_query=sanitized_query, vector_sources=vector_sources_dict, graph_paths=graph_paths)
@@ -98,8 +97,8 @@ async def run_rag(request: ChatRequest) -> ChatResponse:
         else:
             answer = str(llm_res)
     except Exception as e:
-        logger.warning(f"Catalyst QuickML predict call failed (using fallback synthesized response): {e}")
-        answer = f"**Catalyst Intelligence Assistant Assessment:**\nBased on the retrieved evidence from the Zoho Catalyst Knowledge Base and Data Store Graph Engine, case `{sources[0].fir_number if sources else 'FIR-2026-001'}` involves coordinated criminal activity linked across multiple jurisdictions. The suspect network has been mapped with 92% confidence using our native relational graph algorithms."
+        logger.warning(f"Catalyst QuickML predict call failed: {e}")
+        answer = "Catalyst QuickML AI inference service is currently unreachable or returned zero results. Please verify your Catalyst QuickML configuration and credentials."
 
     elapsed_ms = (time.monotonic() - start_time) * 1000
     return ChatResponse(

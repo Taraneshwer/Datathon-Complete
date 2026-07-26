@@ -11,13 +11,11 @@ export function CaseEvidence() {
   const [match, params] = useRoute('/cases/:id');
   const id = params?.id || 'KA-2024-00847';
 
-  // These would fetch based on id, but fallback to mock data since backend might just echo it
   const { data: caseData, isLoading: caseLoading } = useGetCase(id);
   const { data: evidenceData, isLoading: evidenceLoading } = useGetCaseEvidence(id);
   const { data: timelineData, isLoading: timelineLoading } = useGetCaseTimeline(id);
 
-  // Fallbacks
-  const caseDetail = caseData || { id: id, title: 'Loading...', status: 'loading' } as any;
+  const caseDetail = (caseData || {}) as any;
   const evidence = Array.isArray(evidenceData) ? evidenceData : [];
   const timeline = Array.isArray(timelineData) ? timelineData : [];
 
@@ -159,6 +157,7 @@ export function CaseEvidence() {
                   </StaggerItem>
                 );
               })}
+              {timeline.length === 0 && <div className="text-[13px] text-[var(--ink-secondary)] py-4 pl-6">No chronology recorded yet.</div>}
             </div>
           </div>
         </div>

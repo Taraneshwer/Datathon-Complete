@@ -1,0 +1,10 @@
+id,source,target,label,animated
+e1,victim,suspect1,assaulted by,True
+e2,victim,suspect2,identified,
+e3,suspect1,vehicle,used,
+e4,suspect1,phone,owns,
+e5,suspect2,weapon,possessed,
+e6,phone,acct,linked,
+e7,vehicle,loc,seen at,True
+e8,suspect1,org,member of,
+e9,suspect2,org,member of,

@@ -1,23 +1,19 @@
-
 import { PageHeader, SectionCard, StatusPill } from "@/components/ksp/PageHeader";
 import { OpenStreetMap } from "@/components/ksp/OpenStreetMap";
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, SkipBack, SkipForward, Gauge } from "lucide-react";
-
-const PATH = [
-  { t: 0,  lat: 12.9716, lng: 77.5946, event: "Victim leaves MG Road metro" },
-  { t: 12, lat: 12.9686, lng: 77.6060, event: "Vehicle KA-05 seen tailing" },
-  { t: 27, lat: 12.9640, lng: 77.6180, event: "Suspect intercepts victim" },
-  { t: 41, lat: 12.9552, lng: 77.6220, event: "Chain snatched · fled east" },
-  { t: 55, lat: 12.9410, lng: 77.6300, event: "Suspect reaches HSR safehouse" },
-  { t: 72, lat: 12.9081, lng: 77.6476, event: "PCR unit responds" },
-];
+import { useGetReplayPath } from "@/api-client";
 
 export function Replay() {
   const [t, setT] = useState(0);
   const [playing, setPlaying] = useState(true);
   const [speed, setSpeed] = useState(1);
   const raf = useRef<number | null>(null);
+  const pathQuery = useGetReplayPath();
+
+  const path = (pathQuery.data as any[])?.length ? (pathQuery.data as any[]) : [
+    { t: 0, lat: 12.9716, lng: 77.5946, event: "Loading event path..." }
+  ];
 
   useEffect(() => {
     if (!playing) return;
@@ -31,8 +27,8 @@ export function Replay() {
     return () => { if (raf.current) cancelAnimationFrame(raf.current); };
   }, [playing, speed]);
 
-  const idx = Math.min(PATH.length - 1, Math.floor((t / 100) * PATH.length));
-  const currentEvent = PATH[idx];
+  const idx = Math.min(path.length - 1, Math.floor((t / 100) * path.length));
+  const currentEvent = path[idx] || path[0];
 
   return (
     <div className="space-y-6">
@@ -48,7 +44,7 @@ export function Replay() {
           <OpenStreetMap
             center={currentEvent}
             zoom={13}
-            markers={PATH.slice(0, idx + 1).map((p, i) => ({
+            markers={path.slice(0, idx + 1).map((p: any, i: number) => ({
               ...p, tone: i === idx ? "critical" : "info", label: p.event,
             }))}
             height={520}
@@ -58,7 +54,7 @@ export function Replay() {
         <aside className="col-span-12 lg:col-span-4 space-y-4">
           <SectionCard title="Event Log" subtitle="Chronological reconstruction">
             <ol className="relative border-l-2 border-border ml-2 space-y-3">
-              {PATH.map((p, i) => (
+              {path.map((p: any, i: number) => (
                 <li key={i} className="pl-4 relative">
                   <span className={`absolute -left-[7px] top-1 h-3 w-3 rounded-full ring-2 ring-white ${i === idx ? "bg-critical animate-pulse" : i < idx ? "bg-success" : "bg-muted-foreground/40"}`} />
                   <p className="text-[11px] font-mono text-muted-foreground">T+{p.t}s</p>

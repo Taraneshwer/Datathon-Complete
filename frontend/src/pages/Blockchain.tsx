@@ -1,9 +1,11 @@
-
 import { PageHeader, SectionCard, StatusPill } from "@/components/ksp/PageHeader";
-import { LEDGER } from "@/lib/ksp-data";
+import { useGetBlockchainLedger } from "@/api-client";
 import { Blocks, ShieldCheck, Fingerprint, Key, User } from "lucide-react";
 
 export function Blockchain() {
+  const ledgerQuery = useGetBlockchainLedger();
+  const ledger = (ledgerQuery.data as any[]) || [];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -28,7 +30,7 @@ export function Blockchain() {
             </tr>
           </thead>
           <tbody>
-            {LEDGER.map((l) => (
+            {ledger.map((l: any) => (
               <tr key={l.block} className="border-b border-border/60 hover:bg-muted/40">
                 <td className="py-2.5 px-2 font-mono text-xs">#{l.block}</td>
                 <td className="py-2.5 font-mono text-xs text-muted-foreground">{l.hash}</td>

@@ -52,28 +52,32 @@ export function BiasAudit() {
       <StaggerItem>
         <div className="card-base">
           <h2 className="text-card-title mb-6">Resource vs Closure Parity by Region Type</h2>
-          <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-hairline)" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--ink-secondary)', fontFamily: 'Inter' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--ink-secondary)', fontFamily: 'IBM Plex Mono' }} tickFormatter={(val) => `${val}%`} />
-                <Tooltip 
-                  cursor={{ fill: 'var(--data-1)' }}
-                  contentStyle={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-hairline)', borderRadius: '6px', fontFamily: 'Inter', fontSize: '13px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
-                <Bar dataKey="Closure Rate" fill="var(--data-3)" radius={[2, 2, 0, 0]} />
-                <Bar dataKey="Resource Allocation" fill="var(--accent-focus)" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {chartData.length > 0 ? (
+            <div className="h-[350px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-hairline)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--ink-secondary)', fontFamily: 'Inter' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--ink-secondary)', fontFamily: 'IBM Plex Mono' }} tickFormatter={(val) => `${val}%`} />
+                  <Tooltip 
+                    cursor={{ fill: 'var(--data-1)' }}
+                    contentStyle={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-hairline)', borderRadius: '6px', fontFamily: 'Inter', fontSize: '13px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
+                  <Bar dataKey="Closure Rate" fill="var(--data-3)" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="Resource Allocation" fill="var(--accent-focus)" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="text-[13px] text-[var(--ink-secondary)] py-12 text-center">No bias audit buckets available.</div>
+          )}
         </div>
       </StaggerItem>
 
       <StaggerItem>
         <div className="text-[11px] font-mono text-[var(--ink-tertiary)] text-center uppercase tracking-wider">
-          Audit Log ID: {audit.generatedAt} · Hash: {Math.random().toString(36).substring(2, 15)}
+          Audit Log ID: {audit.generatedAt || 'N/A'} · Hash: {audit.hash || audit.id || 'CATALYST-SHA256'}
         </div>
       </StaggerItem>
     </PageTransition>

@@ -1,0 +1,2 @@
+generatedAt,disparity
+2026-07-26T15:51:31.084339+00:00,"{""detected"": true, ""severity"": ""moderate"", ""description"": ""Patrol allocation in D03 (Hubballi-Dharwad) is 15% below state average despite high baseline risk indicators. Rural Beat coverage consistently below threshold."", ""recommendation"": ""Review resource allocation algorithm for non-metro districts. Suggest 12% rebalance from Bengaluru Urban to Tier-2 zones.""}"
