@@ -8,14 +8,13 @@ backend/.venv/
 .coverage
 htmlcov/
 
-# Environment
-.env
-.env.*
-!.env.example
+# # Environment
+# .env
+# .env.*
+# !.env.example
 
 # Node
 frontend/node_modules/
-frontend/dist/
 frontend/.vite/
 
 # Logs
