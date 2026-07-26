@@ -1,28 +1,33 @@
-FROM python:3.11-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
+# ── STAGE 1: Build ──
+FROM python:3.11-slim AS builder
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    ffmpeg \
-    libsm6 \
-    libxext6 \
-    && rm -rf /var/lib/apt/lists/*
+# Install build tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential && rm -rf /var/lib/apt/lists/*
 
+# Setup virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt .
-COPY requirements-ai.txt .
 
+# Install dependencies into virtualenv (AI requirements excluded)
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir -r requirements-ai.txt
+    pip install --no-cache-dir -r requirements.txt
 
+# ── STAGE 2: Lightweight Production Runtime ──
+FROM python:3.11-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH"
+WORKDIR /app
+
+# Copy compiled packages from builder
+COPY --from=builder /opt/venv /opt/venv
 COPY . .
 
-EXPOSE 8000
+# Zoho AppSail default port
+EXPOSE 9000
 
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Using absolute path for uvicorn to guarantee AppSail finds it
+CMD ["/opt/venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9000","--reload"]

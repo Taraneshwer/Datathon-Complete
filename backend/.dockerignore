@@ -16,6 +16,10 @@ htmlcov/
 
 .git/
 .gitignore
+*.csv
+*.json
+*.sqlite
+*.db
 .dockerignore
 Dockerfile
 

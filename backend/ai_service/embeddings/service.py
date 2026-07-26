@@ -3,7 +3,6 @@ ai_service/embeddings/service.py
 """
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import Any
 
@@ -21,14 +20,14 @@ class EmbeddingService:
     async def load(cls) -> EmbeddingService:
         settings = get_settings()
         logger.info(
-            "Loading embedding model '%s' on device='%s'...",
+            "Loading NVIDIA embedding model '%s'...",
             settings.embedding_model,
-            settings.embedding_device,
         )
-        model = await asyncio.to_thread(
-            _load_model,
-            settings.embedding_model,
-            settings.embedding_device,
+        from langchain_nvidia_ai_endpoints import NVIDIAEmbeddings
+        model = NVIDIAEmbeddings(
+            model=settings.embedding_model,
+            api_key=settings.nvidia_api_key,
+            truncate="END"
         )
         logger.info("Embedding model loaded successfully.")
         return cls(model)
@@ -38,40 +37,19 @@ class EmbeddingService:
         if not text:
             raise ValueError("Cannot embed an empty string.")
 
-        vector = await asyncio.to_thread(self._encode_single, text)
-        return vector.tolist()
+        vector = await self._model.aembed_query(text)
+        return vector
 
     async def embed_batch(self, texts: list[str]) -> list[list[float]]:
         if not texts:
             return []
 
-        vectors = await asyncio.to_thread(self._encode_batch, texts)
-        return [v.tolist() for v in vectors]
-
-    def _encode_single(self, text: str) -> Any:
-        return self._model.encode(
-            text,
-            normalize_embeddings=True,
-            show_progress_bar=False,
-        )
-
-    def _encode_batch(self, texts: list[str]) -> Any:
-        return self._model.encode(
-            texts,
-            normalize_embeddings=True,
-            show_progress_bar=False,
-            batch_size=32,
-        )
+        vectors = await self._model.aembed_documents(texts)
+        return vectors
 
     @property
     def vector_size(self) -> int:
-        return int(self._model.get_sentence_embedding_dimension() or 384)
-
-
-def _load_model(model_name: str, device: str) -> Any:
-    # LAZY LOAD
-    from sentence_transformers import SentenceTransformer
-    return SentenceTransformer(model_name, device=device)
+        return self._settings.qdrant_vector_size
 
 
 _embedding_service: EmbeddingService | None = None

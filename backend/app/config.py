@@ -51,8 +51,8 @@ class Settings(BaseSettings):
     qdrant_collection: str = "crime_vectors"
     qdrant_vector_size: int = Field(default=1024, ge=64)  # BGE-M3 = 1024 dims
 
-    # ── Embeddings (BGE-M3) ───────────────────────────────────────────────────
-    embedding_model: str = "BAAI/bge-m3"
+    # ── Embeddings ────────────────────────────────────────────────────────────
+    embedding_model: str = "nvidia/nemotron-3-embed-1b"
     embedding_device: Literal["cpu", "cuda", "mps"] = "cpu"
     embedding_batch_size: int = Field(default=16, ge=1)
 
@@ -66,6 +66,7 @@ class Settings(BaseSettings):
     ollama_model: str = "llama3.2"
     nvidia_api_key: str | None = None
     nvidia_model: str = "meta/llama-3.1-70b-instruct"
+    groq_api_key: str | None = None
 
     # ── Authentication & RBAC ─────────────────────────────────────────────────
     jwt_algorithm: str = "HS256"
