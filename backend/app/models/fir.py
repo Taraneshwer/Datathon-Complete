@@ -172,6 +172,12 @@ class EvidenceItem(TimestampMixin):
     file_reference: str | None = None
     file_size_bytes: int | None = None
     mime_type: str | None = None
+    original_filename: str | None = None
+    object_name: str | None = None
+    bucket_name: str | None = None
+    sha256_hash: str | None = None
+    upload_status: str | None = None
+    upload_time: datetime | None = None
 
     # AI-extracted analysis results (stored as JSON)
     ai_analysis: dict | None = Field(

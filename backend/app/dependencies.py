@@ -22,6 +22,7 @@ from app.repositories import (
 )
 from ai_service.embeddings.service import get_embedding_service
 from app.services.ingest_service import IngestService
+from app.services.storage_service import StorageService
 
 # ── Database sessions ─────────────────────────────────────────────────────────
 
@@ -65,6 +66,10 @@ async def get_ingest_service(
     """Construct a 100% Catalyst-Native IngestService."""
     return IngestService(case_repo=case_repo, evidence_repo=evidence_repo, audit_repo=audit_repo, db_client=db_client)
 
+async def get_storage_service(db_client: CatalystDBDep) -> StorageService:
+    """Construct a Catalyst Stratus StorageService."""
+    return StorageService(db_client=db_client)
+
 async def get_pattern_matcher(db_client: CatalystDBDep) -> PatternMatcher:
     """Construct a PatternMatcher backed by Catalyst QuickML Knowledge Base."""
     embedder = await get_embedding_service()
@@ -94,6 +99,7 @@ def get_actor(
 # ── Type aliases for Depends wrappers ─────────────────────────────────────────
 
 IngestServiceDep = Annotated[IngestService, Depends(get_ingest_service)]
+StorageServiceDep = Annotated[StorageService, Depends(get_storage_service)]
 PatternMatcherDep = Annotated[PatternMatcher, Depends(get_pattern_matcher)]
 HotspotPredictorDep = Annotated[HotspotPredictor, Depends(get_hotspot_predictor)]
 ActorDep = Annotated[str, Depends(get_actor)]
