@@ -1,0 +1,25 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+env.bak/
+venv.bak/
+.pytest_cache/
+.coverage
+htmlcov/
+
+.git/
+.gitignore
+*.csv
+*.json
+*.sqlite
+*.db
+.dockerignore
+Dockerfile
+
+# Any data volumes
+data/
