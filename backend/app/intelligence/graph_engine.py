@@ -21,7 +21,17 @@ class CatalystRelationalGraphEngine:
     """
     def __init__(self, db_client: Optional[CatalystDBClient] = None):
         self.db = db_client or CatalystDBClient()
-        self.cache = self.db.get_cache_service()
+        self._cache = None
+
+    @property
+    def cache(self):
+        if self._cache is None:
+            try:
+                self._cache = self.db.get_cache_service()
+            except Exception as e:
+                logger.debug(f"Cache service unavailable: {e}")
+                return None
+        return self._cache
 
     def _fetch_adjacency_list(self, max_confidence_threshold: float = 0.50) -> Dict[str, List[Tuple[str, str, float]]]:
         """Fetches graph edges from Data Store Relationship table into memory for high-speed traversal."""
@@ -154,5 +164,4 @@ class CatalystRelationalGraphEngine:
         if entity_id.startswith("loc_") or "sector" in entity_id.lower(): return "LOCATION"
         return "UNKNOWN"
 
-# Singleton export
-graph_engine = CatalystRelationalGraphEngine()
+# End of CatalystRelationalGraphEngine

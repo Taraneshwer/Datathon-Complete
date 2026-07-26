@@ -18,8 +18,18 @@ class EmbeddingService:
     """100% Catalyst-Native QuickML Embedding Service."""
     def __init__(self, quickml_client: Any = None) -> None:
         self.db = CatalystDBClient()
-        self.quickml = quickml_client or self.db.get_quickml_service()
+        self._quickml_client = quickml_client
         self._settings = get_settings()
+
+    @property
+    def quickml(self):
+        if self._quickml_client is None:
+            try:
+                self._quickml_client = self.db.get_quickml_service()
+            except Exception as e:
+                logger.debug(f"QuickML service unavailable: {e}")
+                return None
+        return self._quickml_client
 
     @classmethod
     async def load(cls) -> EmbeddingService:

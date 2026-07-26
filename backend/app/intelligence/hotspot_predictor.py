@@ -15,11 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import NamedTuple
-
-import numpy as np
-from numpy.typing import NDArray
-from sklearn.cluster import DBSCAN
+from typing import Any, NamedTuple
 
 from app.config import get_settings
 from app.models.schemas import ClusterResult, CoordinatePoint, HotspotResponse
@@ -28,8 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 class _ClusterOutput(NamedTuple):
-    labels: NDArray[np.intp]
-    coords: NDArray[np.float64]
+    labels: Any
+    coords: Any
 
 
 class HotspotPredictor:
@@ -103,6 +99,12 @@ class HotspotPredictor:
         Synchronous DBSCAN execution (runs in thread pool).
         Uses haversine metric for geographically accurate distance.
         """
+        try:
+            import numpy as np
+            from sklearn.cluster import DBSCAN
+        except ImportError as exc:
+            raise RuntimeError("scikit-learn and numpy must be installed to run DBSCAN clustering: " + str(exc)) from exc
+
         coords = np.array(
             [[p.latitude, p.longitude] for p in coordinates],
             dtype=np.float64,
@@ -134,6 +136,8 @@ class HotspotPredictor:
         """
         Aggregate DBSCAN labels into cluster summary objects.
         """
+        import numpy as np
+
         labels = output.labels
         coords = output.coords
 

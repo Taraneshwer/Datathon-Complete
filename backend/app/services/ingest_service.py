@@ -11,7 +11,6 @@ import asyncio
 import logging
 import uuid
 from datetime import datetime
-import h3
 from app.config import get_settings
 from app.models.fir import AuditAction, AuditTrail, Case, EvidenceItem
 from app.models.schemas import FIRIngestRequest, IngestResponse
@@ -115,7 +114,11 @@ class IngestService:
 
         h3_index: str | None = None
         if payload.latitude and payload.longitude:
-            h3_index = h3.latlng_to_cell(payload.latitude, payload.longitude, self._settings.h3_resolution)
+            try:
+                import h3
+                h3_index = h3.latlng_to_cell(payload.latitude, payload.longitude, self._settings.h3_resolution)
+            except ImportError:
+                logger.warning("h3 library not installed; skipping H3 spatial indexing for FIR %s", payload.fir_number)
 
         case = Case(
             id=case_id, fir_number=payload.fir_number, title=payload.title, description=payload.description,

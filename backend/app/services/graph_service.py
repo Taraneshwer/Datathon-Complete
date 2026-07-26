@@ -9,7 +9,7 @@ over Data Store SQL tables (Person, Vehicle, Weapon, Location, Organization, Rel
 from __future__ import annotations
 import logging
 from typing import Any, Dict, List
-from app.intelligence.graph_engine import CatalystRelationalGraphEngine, graph_engine
+from app.intelligence.graph_engine import CatalystRelationalGraphEngine
 from app.models.schemas import GraphEntities
 from app.db.catalyst import CatalystDBClient
 

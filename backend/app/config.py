@@ -16,7 +16,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "backend/.env"),
         str_strip_whitespace=True,
         env_file_encoding="utf-8",
         case_sensitive=False,
@@ -24,24 +24,22 @@ class Settings(BaseSettings):
     )
 
     # ── Application ──────────────────────────────────────────────────────────
-    environment: Literal["development", "staging", "production"] = "development"
+    environment: str = "development"
     app_name: str = "AI Crime Intelligence & Investigation Platform"
     app_version: str = "2.0.0"
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    log_level: str = "INFO"
     secret_key: str = Field(..., min_length=32)
     api_prefix: str = "/api/v1"
 
     # ── Zoho Catalyst Data Store ──────────────────────────────────────────────
     zoho_catalyst_project_id: str | None = None
-    zoho_catalyst_environment: Literal["Development", "Production"] = "Development"
-    zoho_catalyst_client_id: str | None = None
-    zoho_catalyst_client_secret: str | None = None
-    zoho_catalyst_app_name: str = "crime_intel"
+    zoho_catalyst_environment: str | None = None
+    zoho_catalyst_listen_port: int = 8000
 
     # ── Catalyst QuickML & Knowledge Base ─────────────────────────────────────
     quickml_kb_name: str = "rainfall_crime_knowledge_base"
     embedding_model: str = "nemotron-3-embed-1b"
-    llm_provider: Literal["catalyst"] = "catalyst"
+    llm_provider: str = "catalyst"
     llm_model: str = "llama-3.1-70b-instruct"
 
 

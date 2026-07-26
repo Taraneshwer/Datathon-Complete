@@ -15,9 +15,6 @@ from __future__ import annotations
 import asyncio
 import logging
 
-import h3
-import numpy as np
-
 from app.config import get_settings
 from app.models.schemas import (
     BlindSpotRequest,
@@ -99,6 +96,12 @@ class BlindSpotDetector:
         request: BlindSpotRequest, resolution: int
     ) -> list[BlindSpotResult]:
         """Synchronous H3 grid analysis (runs in thread pool)."""
+        try:
+            import h3
+            import numpy as np
+        except ImportError as exc:
+            raise RuntimeError("h3 and numpy must be installed to run blind spot analysis: " + str(exc)) from exc
+
         # Generate H3 cells covering the bounding box
         cells = h3.geo_to_cells(
             {
