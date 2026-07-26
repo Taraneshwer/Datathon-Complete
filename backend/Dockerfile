@@ -27,8 +27,8 @@ COPY --from=builder /opt/venv /opt/venv
 COPY . .
 
 # Zoho AppSail default port
-EXPOSE 8000
+EXPOSE 9000
 
 # Using absolute path for uvicorn to guarantee AppSail finds it
-CMD ["/opt/venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["/opt/venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9000", "--workers", "1"]
 
