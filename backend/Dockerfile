@@ -30,4 +30,5 @@ COPY . .
 EXPOSE 9000
 
 # Using absolute path for uvicorn to guarantee AppSail finds it
-CMD ["/opt/venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9000","--reload"]
+CMD ["/opt/venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9000", "--workers", "1"]
+

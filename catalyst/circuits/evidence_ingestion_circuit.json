@@ -1,0 +1,119 @@
+{
+  "name": "evidence_ingestion_circuit",
+  "description": "100% Zoho Catalyst-Native Event-Driven Evidence Processing Pipeline. Replaces Qdrant and Neo4j indexing steps with QuickML Knowledge Base and Data Store Graph indexing steps.",
+  "start_state": "SanitizeEvidenceFile",
+  "states": {
+    "SanitizeEvidenceFile": {
+      "type": "task",
+      "function_name": "evidence_worker",
+      "action": "sanitize_file",
+      "next": "RouteEvidenceType",
+      "on_error": "HandleIngestionError"
+    },
+    "RouteEvidenceType": {
+      "type": "choice",
+      "choices": [
+        {
+          "condition": "$.evidence_type == 'IMAGE' || $.evidence_type == 'VIDEO'",
+          "next": "ExecuteZiaVisionAnalysis"
+        },
+        {
+          "condition": "$.evidence_type == 'AUDIO'",
+          "next": "ExecuteZiaSpeechTranscription"
+        },
+        {
+          "condition": "$.evidence_type == 'DOCUMENT' || $.evidence_type == 'PDF'",
+          "next": "ExecuteZiaOCRTextExtraction"
+        }
+      ],
+      "default": "ExecuteZiaOCRTextExtraction"
+    },
+    "ExecuteZiaVisionAnalysis": {
+      "type": "task",
+      "function_name": "evidence_worker",
+      "action": "run_vision",
+      "next": "ExtractEntitiesAndRelationships",
+      "on_error": "HandleIngestionError"
+    },
+    "ExecuteZiaSpeechTranscription": {
+      "type": "task",
+      "function_name": "evidence_worker",
+      "action": "run_speech",
+      "next": "ExtractEntitiesAndRelationships",
+      "on_error": "HandleIngestionError"
+    },
+    "ExecuteZiaOCRTextExtraction": {
+      "type": "task",
+      "function_name": "evidence_worker",
+      "action": "run_ocr",
+      "next": "ExtractEntitiesAndRelationships",
+      "on_error": "HandleIngestionError"
+    },
+    "ExtractEntitiesAndRelationships": {
+      "type": "task",
+      "function_name": "evidence_worker",
+      "action": "extract_entities",
+      "next": "ParallelStoreAndIndex",
+      "on_error": "HandleIngestionError"
+    },
+    "ParallelStoreAndIndex": {
+      "type": "parallel",
+      "branches": [
+        {
+          "start_state": "IndexDataStoreGraph",
+          "states": {
+            "IndexDataStoreGraph": {
+              "type": "task",
+              "function_name": "evidence_worker",
+              "action": "index_graph_sql",
+              "end": true
+            }
+          }
+        },
+        {
+          "start_state": "IndexQuickMLKnowledgeBase",
+          "states": {
+            "IndexQuickMLKnowledgeBase": {
+              "type": "task",
+              "function_name": "evidence_worker",
+              "action": "index_quickml_kb",
+              "end": true
+            }
+          }
+        },
+        {
+          "start_state": "PersistNoSQLMetadata",
+          "states": {
+            "PersistNoSQLMetadata": {
+              "type": "task",
+              "function_name": "evidence_worker",
+              "action": "write_nosql_doc",
+              "end": true
+            }
+          }
+        }
+      ],
+      "next": "RecordBlockchainAudit",
+      "on_error": "HandleIngestionError"
+    },
+    "RecordBlockchainAudit": {
+      "type": "task",
+      "function_name": "evidence_worker",
+      "action": "record_audit_trail",
+      "next": "NotifyInvestigationTeam",
+      "on_error": "HandleIngestionError"
+    },
+    "NotifyInvestigationTeam": {
+      "type": "task",
+      "function_name": "evidence_worker",
+      "action": "send_notification",
+      "end": true
+    },
+    "HandleIngestionError": {
+      "type": "task",
+      "function_name": "evidence_worker",
+      "action": "log_failure_and_alert",
+      "end": true
+    }
+  }
+}

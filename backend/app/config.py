@@ -38,36 +38,12 @@ class Settings(BaseSettings):
     zoho_catalyst_client_secret: str | None = None
     zoho_catalyst_app_name: str = "crime_intel"
 
-    # ── Neo4j ─────────────────────────────────────────────────────────────────
-    neo4j_uri: str = Field(...)
-    neo4j_user: str = Field(...)
-    neo4j_password: str = Field(...)
-    neo4j_max_connection_pool_size: int = Field(default=50, ge=1)
-    neo4j_connection_timeout: int = Field(default=30, ge=5)
+    # ── Catalyst QuickML & Knowledge Base ─────────────────────────────────────
+    quickml_kb_name: str = "rainfall_crime_knowledge_base"
+    embedding_model: str = "nemotron-3-embed-1b"
+    llm_provider: Literal["catalyst"] = "catalyst"
+    llm_model: str = "llama-3.1-70b-instruct"
 
-    # ── Qdrant ───────────────────────────────────────────────────────────────
-    qdrant_host: str = Field(...)
-    qdrant_port: int = Field(default=6333, ge=1, le=65535)
-    qdrant_api_key: str | None = None
-    qdrant_collection: str = "crime_vectors"
-    qdrant_vector_size: int = Field(default=1024, ge=64)  # BGE-M3 = 1024 dims
-
-    # ── Embeddings ────────────────────────────────────────────────────────────
-    embedding_model: str = "nvidia/nemotron-3-embed-1b"
-    embedding_device: Literal["cpu", "cuda", "mps"] = "cpu"
-    embedding_batch_size: int = Field(default=16, ge=1)
-
-    # ── LLM Provider ─────────────────────────────────────────────────────────
-    llm_provider: Literal["openai", "google", "ollama", "nvidia"] = "nvidia"
-    openai_api_key: str | None = None
-    openai_model: str = "gpt-4o"
-    google_api_key: str | None = None
-    google_model: str = "gemini-1.5-pro"
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.2"
-    nvidia_api_key: str | None = None
-    nvidia_model: str = "meta/llama-3.1-70b-instruct"
-    groq_api_key: str | None = None
 
     # ── Authentication & RBAC ─────────────────────────────────────────────────
     jwt_algorithm: str = "HS256"
@@ -113,12 +89,6 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_llm_credentials(self) -> Settings:
-        if self.llm_provider == "openai" and not self.openai_api_key:
-            raise ValueError("OPENAI_API_KEY must be set when LLM_PROVIDER=openai")
-        if self.llm_provider == "google" and not self.google_api_key:
-            raise ValueError("GOOGLE_API_KEY must be set when LLM_PROVIDER=google")
-        if self.llm_provider == "nvidia" and not self.nvidia_api_key:
-            raise ValueError("NVIDIA_API_KEY must be set when LLM_PROVIDER=nvidia")
         return self
 
     @property
