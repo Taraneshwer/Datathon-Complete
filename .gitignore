@@ -21,7 +21,7 @@ frontend/.vite/
 # Logs
 *.log
 logs/
-
+Docker_Image/
 # OS
 .DS_Store
 Thumbs.db
