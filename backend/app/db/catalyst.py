@@ -25,47 +25,43 @@ class CatalystDBClient:
     def __init__(self, app_instance: Any = None):
         self.app = app_instance or _catalyst_app
 
+    def _ensure_app(self) -> Any:
+        if not self.app:
+            try:
+                self.app = zcatalyst_sdk.initialize()
+            except Exception as exc:
+                if get_settings().environment == "development":
+                    logger.debug("Catalyst SDK initialize failed in dev environment: %s", exc)
+                raise
+        return self.app
+
     def get_table_service(self, table_name: str) -> Any:
         """Returns Catalyst Data Store SQL Table service instance."""
-        if not self.app:
-            self.app = zcatalyst_sdk.initialize()
-        return self.app.table(table_name)
+        return self._ensure_app().table(table_name)
 
     def get_nosql_service(self, collection_name: str) -> Any:
         """Returns Catalyst NoSQL Document collection service instance."""
-        if not self.app:
-            self.app = zcatalyst_sdk.initialize()
-        return self.app.nosql(collection_name)
+        return self._ensure_app().nosql(collection_name)
 
     def get_cache_service(self) -> Any:
         """Returns Catalyst Cache Redis-compatible service instance."""
-        if not self.app:
-            self.app = zcatalyst_sdk.initialize()
-        return self.app.cache()
+        return self._ensure_app().cache()
 
     def get_stratus_bucket(self, bucket_name: str = "rainfall-evidence-archive") -> Any:
         """Returns Catalyst Stratus Object Storage bucket service instance."""
-        if not self.app:
-            self.app = zcatalyst_sdk.initialize()
-        return self.app.filestore().bucket(bucket_name)
+        return self._ensure_app().filestore().bucket(bucket_name)
 
     def get_quickml_service(self) -> Any:
         """Returns Catalyst QuickML AI service instance (LLM, Embeddings, Knowledge Base)."""
-        if not self.app:
-            self.app = zcatalyst_sdk.initialize()
-        return self.app.quickml()
+        return self._ensure_app().quickml()
 
     def get_zia_service(self) -> Any:
         """Returns Catalyst Zia AI service instance (OCR, Vision, Speech, Translation)."""
-        if not self.app:
-            self.app = zcatalyst_sdk.initialize()
-        return self.app.zia()
+        return self._ensure_app().zia()
 
     def execute_sql_query(self, sql_query: str) -> List[Dict[str, Any]]:
         """Executes raw SQL query against Catalyst Data Store tables."""
-        if not self.app:
-            self.app = zcatalyst_sdk.initialize()
-        zcql = self.app.zcql()
+        zcql = self._ensure_app().zcql()
         return zcql.execute_query(sql_query)
 
 
@@ -83,7 +79,8 @@ async def init_catalyst() -> None:
         logger.error(f"Failed to initialize Zoho Catalyst: {e}")
         if settings.environment == "development":
             logger.warning("Running in development mode without Catalyst context. Cloud SDK calls will fail over.")
-            _catalyst_app = zcatalyst_sdk.initialize() if hasattr(zcatalyst_sdk, "initialize") else None
+            _catalyst_app = None
+            _datastore = None
         else:
             raise
 
